@@ -39,21 +39,21 @@ int main(void)
                "e arvores!\n", total_carregados);
 
         while (executando) {
-            int opcao;
+            OpcaoMenu_e opcao;
 
             exibir_menu_principal();
-            opcao = ler_inteiro(OPCAO_ENCERRAR);
+            opcao = ler_opcao_menu();
 
-            if (opcao == 1) {
+            if (opcao == OPCAO_LISTAR_CATEGORIAS) {
                 lista_exibir_categorias(lista_categorias);
 
-            } else if (opcao == 2) {
+            } else if (opcao == OPCAO_LISTAR_ALIMENTOS) {
                 NoCategoria_t *cat = selecionar_categoria(lista_categorias);
                 if (cat) {
                     lista_exibir_alimentos_categoria(cat);
                 }
 
-            } else if (opcao == 3) {
+            } else if (opcao == OPCAO_LISTAR_POR_ENERGIA) {
                 NoCategoria_t *cat = selecionar_categoria(lista_categorias);
                 if (cat) {
                     int cont = 0;
@@ -65,7 +65,7 @@ int main(void)
                            "----------\n", cont);
                 }
 
-            } else if (opcao == 4) {
+            } else if (opcao == OPCAO_LISTAR_POR_PROTEINA) {
                 NoCategoria_t *cat = selecionar_categoria(lista_categorias);
                 if (cat) {
                     int cont = 0;
@@ -77,7 +77,7 @@ int main(void)
                            "-----------\n", cont);
                 }
 
-            } else if (opcao == 5) {
+            } else if (opcao == OPCAO_FAIXA_ENERGIA) {
                 NoCategoria_t *cat = selecionar_categoria(lista_categorias);
                 if (cat) {
                     double min;
@@ -93,7 +93,7 @@ int main(void)
                            "-----------\n", cont);
                 }
 
-            } else if (opcao == 6) {
+            } else if (opcao == OPCAO_FAIXA_PROTEINA) {
                 NoCategoria_t *cat = selecionar_categoria(lista_categorias);
                 if (cat) {
                     double min;
@@ -110,7 +110,7 @@ int main(void)
                            "----------\n", cont);
                 }
 
-            } else if (opcao == 7) {
+            } else if (opcao == OPCAO_REMOVER_CATEGORIA) {
                 NoCategoria_t *cat = selecionar_categoria(lista_categorias);
                 if (cat) {
                     /* Guarda o nome antes, porque o no sera liberado. */
@@ -128,14 +128,14 @@ int main(void)
                     }
                 }
 
-            } else if (opcao == 8) {
+            } else if (opcao == OPCAO_REMOVER_ALIMENTO) {
                 NoCategoria_t *cat = selecionar_categoria(lista_categorias);
                 if (cat) {
                     int num_alimento;
 
                     lista_exibir_alimentos_categoria(cat);
                     printf("Digite o numero do alimento que deseja remover: ");
-                    num_alimento = ler_inteiro(0);
+                    num_alimento = ler_inteiro(LEITURA_INVALIDA);
 
                     if (lista_remover_alimento(cat, num_alimento)) {
                         dados_modificados = 1;
@@ -156,9 +156,16 @@ int main(void)
                            "atualizado...\n", ARQUIVO_DADOS_BIN);
                     gravados = lista_salvar_binario(lista_categorias,
                                                     ARQUIVO_DADOS_BIN);
-                    printf("SUCESSO: %d registros gravados na versao "
-                           "atualizada de '%s'.\n",
-                           gravados, ARQUIVO_DADOS_BIN);
+                    if (gravados < 0) {
+                        fprintf(stderr, "ERRO: Nao foi possivel gravar '%s'. "
+                                "As remocoes feitas nao foram salvas.\n",
+                                ARQUIVO_DADOS_BIN);
+                        codigo_retorno = EXIT_FAILURE;
+                    } else {
+                        printf("SUCESSO: %d registros gravados na versao "
+                               "atualizada de '%s'.\n",
+                               gravados, ARQUIVO_DADOS_BIN);
+                    }
                 } else {
                     printf("\nNenhuma alteracao nos dados. O arquivo '%s' "
                            "foi mantido intacto.\n", ARQUIVO_DADOS_BIN);
@@ -171,7 +178,8 @@ int main(void)
                 executando = 0;
 
             } else {
-                printf("Opcao invalida! Digite um valor entre 1 e 9.\n");
+                printf("Opcao invalida! Digite um valor entre %d e %d.\n",
+                       OPCAO_LISTAR_CATEGORIAS, OPCAO_ENCERRAR);
             }
         }
     }

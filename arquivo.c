@@ -7,13 +7,9 @@
 /* Tamanho maximo de uma linha do CSV. */
 #define TAM_LINHA_BUFFER 512
 
-/* Tamanho maximo do caminho alternativo "<caminho>.txt". */
-#define TAM_CAMINHO 260
-
 static void remover_quebra_linha(char *linha);
 
-/* Le o CSV linha a linha. Se o arquivo nao abrir, tenta o mesmo nome
- * com ".txt" no fim (caso tenha sido salvo como alimentos.csv.txt). */
+/* Le o CSV linha a linha. */
 int arquivo_ler_csv(const char *caminho, Alimento_t *vetor, int capacidade)
 {
     int total_lidos = -1;
@@ -21,13 +17,6 @@ int arquivo_ler_csv(const char *caminho, Alimento_t *vetor, int capacidade)
 
     if (caminho && vetor && capacidade > 0) {
         arquivo = fopen(caminho, "r");
-
-        if (!arquivo && !strstr(caminho, ".txt")) {
-            char caminho_alternativo[TAM_CAMINHO];
-            snprintf(caminho_alternativo, sizeof(caminho_alternativo),
-                     "%s.txt", caminho);
-            arquivo = fopen(caminho_alternativo, "r");
-        }
 
         if (arquivo) {
             char buffer[TAM_LINHA_BUFFER];
@@ -87,7 +76,8 @@ static void remover_quebra_linha(char *linha)
     }
 }
 
-/* Grava o vetor inteiro de uma vez com fwrite. */
+/* Grava o vetor inteiro de uma vez com fwrite. Se o fclose falhar,
+ * o arquivo pode ter ficado incompleto, entao tambem conta como erro. */
 int arquivo_gravar_binario(const char *caminho, const Alimento_t *vetor,
                            int quantidade)
 {
@@ -102,7 +92,9 @@ int arquivo_gravar_binario(const char *caminho, const Alimento_t *vetor,
                 total_gravados = (int)fwrite(vetor, sizeof(Alimento_t),
                                              (size_t)quantidade, arquivo);
             }
-            fclose(arquivo);
+            if (fclose(arquivo) == EOF) {
+                total_gravados = -1;
+            }
         }
     }
 

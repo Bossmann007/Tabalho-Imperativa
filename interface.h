@@ -1,4 +1,4 @@
-/* interface.h: menu e leitura de dados do teclado (P2) e amostra do P1. */
+/* interface.h: menu e leitura de dados do teclado (P2). */
 
 #ifndef INTERFACE_H
 #define INTERFACE_H
@@ -6,16 +6,31 @@
 #include "alimento.h"
 #include "lista.h"
 
-/* Opcao do menu que encerra o P2. Tambem e usada quando a entrada acaba. */
-#define OPCAO_ENCERRAR 9
+/* Valor lido quando a linha nao tem um numero. */
+#define LEITURA_INVALIDA 0
 
-/* Mostra o primeiro, o do meio (indice 299) e o ultimo alimento do vetor. */
-void exibir_amostras(const Alimento_t *vetor, int quantidade);
+/* Opcoes do menu do P2. A primeira vale 0, entao as validas vao de 1 a 9.
+ * OPCAO_ENCERRAR tambem e usada quando a entrada acaba. */
+typedef enum {
+    OPCAO_INVALIDA,
+    OPCAO_LISTAR_CATEGORIAS,
+    OPCAO_LISTAR_ALIMENTOS,
+    OPCAO_LISTAR_POR_ENERGIA,
+    OPCAO_LISTAR_POR_PROTEINA,
+    OPCAO_FAIXA_ENERGIA,
+    OPCAO_FAIXA_PROTEINA,
+    OPCAO_REMOVER_CATEGORIA,
+    OPCAO_REMOVER_ALIMENTO,
+    OPCAO_ENCERRAR
+} OpcaoMenu_e;
 
 /* Mostra o menu principal do P2. */
 void exibir_menu_principal(void);
 
-/* Le uma linha e devolve o inteiro dela (0 se nao for numero).
+/* Le uma opcao do menu. Fora de 1 a 9 devolve OPCAO_INVALIDA. */
+OpcaoMenu_e ler_opcao_menu(void);
+
+/* Le uma linha e devolve o inteiro dela (LEITURA_INVALIDA se nao for numero).
  * Se a entrada acabou (EOF), devolve valor_fim_entrada. */
 int ler_inteiro(int valor_fim_entrada);
 
