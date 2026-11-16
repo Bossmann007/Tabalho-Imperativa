@@ -5,9 +5,6 @@
 
 #include "lista.h"
 
-/* Valor lido quando a linha nao tem um numero. */
-#define LEITURA_INVALIDA 0
-
 /* Opcoes do menu do P2. A primeira vale 0, entao as validas vao de 1 a 9.
  * OPCAO_ENCERRAR tambem e usada quando a entrada acaba. */
 typedef enum {
@@ -28,21 +25,6 @@ void exibir_menu_principal(void);
 
 /* Le uma opcao do menu. Fora de 1 a 9 devolve OPCAO_INVALIDA. */
 OpcaoMenu_e ler_opcao_menu(void);
-
-/* Le uma linha e devolve o inteiro dela (LEITURA_INVALIDA se nao for numero).
- * Se a entrada acabou (EOF), devolve valor_fim_entrada. */
-int ler_inteiro(int valor_fim_entrada);
-
-/* Le uma linha e devolve o numero real dela (0.0 se nao for numero). */
-double ler_double(void);
-
-/* Pede o minimo e o maximo de uma grandeza, por exemplo "energia (kcal)".
- * Se o usuario digitar invertido, troca os dois. */
-void ler_faixa(const char *grandeza, double *min, double *max);
-
-/* Mostra as categorias e pede uma pelo numero.
- * Devolve a categoria escolhida, ou NULL se o numero for invalido. */
-NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
 
 /* Mostra o titulo do P2 e avisa que vai carregar o arquivo. */
 void exibir_abertura(const char *caminho_bin);

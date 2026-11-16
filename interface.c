@@ -8,15 +8,20 @@
 /* Tamanho maximo de uma linha digitada pelo usuario. */
 #define TAM_ENTRADA 64
 
-/* Tamanhos da linha de tracos no fim das listagens por arvore. */
-#define TRACOS_CURTO 59
-#define TRACOS_LONGO 60
+/* Tamanho da linha de tracos no fim das listagens por arvore. */
+#define TAM_TRACOS 60
 
-static void exibir_rodape(const char *texto, int total, int tracos);
-static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
-                               int tracos);
-static void listar_faixa(NoCategoria_t *cabeca, int por_energia,
-                         int tracos);
+/* Valor lido quando a linha nao tem um numero. */
+#define LEITURA_INVALIDA 0
+
+/* Funcoes usadas so neste arquivo (o comentario fica na definicao). */
+static int ler_inteiro(int valor_fim_entrada);
+static double ler_double(void);
+static void ler_faixa(const char *grandeza, double *min, double *max);
+static NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
+static void exibir_rodape(const char *texto, int total);
+static void listar_decrescente(NoCategoria_t *cabeca, int por_energia);
+static void listar_faixa(NoCategoria_t *cabeca, int por_energia);
 
 /* Mostra as opcoes de 1 a 9. */
 void exibir_menu_principal(void)
@@ -58,9 +63,10 @@ OpcaoMenu_e ler_opcao_menu(void)
 }
 
 /* Le a linha inteira com fgets e tira o numero com sscanf.
+ * Se a linha nao tem numero, devolve LEITURA_INVALIDA.
  * No fim da entrada devolve valor_fim_entrada; no menu isso e
  * OPCAO_ENCERRAR, e o programa termina em vez de ficar em loop. */
-int ler_inteiro(int valor_fim_entrada)
+static int ler_inteiro(int valor_fim_entrada)
 {
     char buffer[TAM_ENTRADA];
     int valor = LEITURA_INVALIDA;
@@ -74,21 +80,32 @@ int ler_inteiro(int valor_fim_entrada)
     return valor;
 }
 
-/* Le a linha inteira com fgets e tira o numero com sscanf. */
-double ler_double(void)
+/* Le linhas ate achar um numero. No fim da entrada para e devolve 0.0,
+ * para o programa nao ficar em loop. */
+static double ler_double(void)
 {
     char buffer[TAM_ENTRADA];
     double valor = 0.0;
+    int lido = 0;
+    int fim_entrada = 0;
 
-    if (fgets(buffer, sizeof(buffer), stdin)) {
-        sscanf(buffer, "%lf", &valor);
+    while (!lido && !fim_entrada) {
+        if (fgets(buffer, sizeof(buffer), stdin)) {
+            lido = (sscanf(buffer, "%lf", &valor) == 1);
+            if (!lido) {
+                printf("AVISO: Valor invalido! Digite um numero: ");
+            }
+        } else {
+            fim_entrada = 1;
+        }
     }
 
     return valor;
 }
 
-/* Pede minimo e maximo e garante que *min <= *max. */
-void ler_faixa(const char *grandeza, double *min, double *max)
+/* Pede minimo e maximo de uma grandeza, por exemplo "energia (kcal)".
+ * Se o usuario digitar invertido, troca os dois: assim *min <= *max. */
+static void ler_faixa(const char *grandeza, double *min, double *max)
 {
     printf("Informe o valor MINIMO de %s: ", grandeza);
     *min = ler_double();
@@ -103,8 +120,9 @@ void ler_faixa(const char *grandeza, double *min, double *max)
 }
 
 /* Mostra a lista de categorias e le o numero escolhido.
- * No fim da entrada le LEITURA_INVALIDA. */
-NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca)
+ * Devolve a categoria, ou NULL se o numero for invalido
+ * (no fim da entrada o numero lido e LEITURA_INVALIDA). */
+static NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca)
 {
     NoCategoria_t *selecionada = NULL;
     int indice;
@@ -132,27 +150,27 @@ void exibir_abertura(const char *caminho_bin)
 }
 
 /* Linha de total e linha de tracos que fecham uma listagem. */
-static void exibir_rodape(const char *texto, int total, int tracos)
+static void exibir_rodape(const char *texto, int total)
 {
     int i;
 
     printf("Total: %d %s.\n", total, texto);
-    for (i = 0; i < tracos; i++) {
+    for (i = 0; i < TAM_TRACOS; i++) {
         putchar('-');
     }
     putchar('\n');
 }
 
-/* Opcoes 3 e 4: so muda a arvore usada e o titulo. */
-static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
-                               int tracos)
+/* Opcoes 3 e 4: so muda a arvore usada e o titulo.
+ * por_energia = 1 usa a arvore de energia; 0 usa a de proteina. */
+static void listar_decrescente(NoCategoria_t *cabeca, int por_energia)
 {
     NoCategoria_t *cat = selecionar_categoria(cabeca);
 
     if (cat) {
         const NoArvore_t *arvore = cat->arvore_proteina;
         const char *grandeza = "PROTEINA";
-        int cont = 0;
+        int contador = 0;
 
         if (por_energia) {
             arvore = cat->arvore_energia;
@@ -160,13 +178,14 @@ static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
         }
         printf("\n--- ALIMENTOS DE '%s' POR %s DECRESCENTE (ARVORE) ---\n",
                cat->nome, grandeza);
-        arvore_listar_decrescente(arvore, &cont);
-        exibir_rodape("alimentos exibidos", cont, tracos);
+        arvore_listar_decrescente(arvore, &contador);
+        exibir_rodape("alimentos exibidos", contador);
     }
 }
 
-/* Opcoes 5 e 6: le a faixa e lista pela arvore certa. */
-static void listar_faixa(NoCategoria_t *cabeca, int por_energia, int tracos)
+/* Opcoes 5 e 6: le a faixa e lista pela arvore certa.
+ * por_energia = 1 usa a arvore de energia; 0 usa a de proteina. */
+static void listar_faixa(NoCategoria_t *cabeca, int por_energia)
 {
     NoCategoria_t *cat = selecionar_categoria(cabeca);
 
@@ -177,7 +196,7 @@ static void listar_faixa(NoCategoria_t *cabeca, int por_energia, int tracos)
         const char *unidade = "G";
         double min;
         double max;
-        int cont = 0;
+        int contador = 0;
 
         if (por_energia) {
             arvore = cat->arvore_energia;
@@ -188,8 +207,8 @@ static void listar_faixa(NoCategoria_t *cabeca, int por_energia, int tracos)
         ler_faixa(pergunta, &min, &max);
         printf("\n--- ALIMENTOS DE '%s' COM %s ENTRE %.1f E %.1f %s ---\n",
                cat->nome, grandeza, min, max, unidade);
-        arvore_listar_faixa(arvore, min, max, &cont);
-        exibir_rodape("alimentos encontrados na faixa", cont, tracos);
+        arvore_listar_faixa(arvore, min, max, &contador);
+        exibir_rodape("alimentos encontrados na faixa", contador);
     }
 }
 
@@ -206,25 +225,25 @@ void acao_listar_alimentos(NoCategoria_t *cabeca)
 /* Opcao 3. */
 void acao_listar_por_energia(NoCategoria_t *cabeca)
 {
-    listar_decrescente(cabeca, 1, TRACOS_CURTO);
+    listar_decrescente(cabeca, 1); /* 1 = energia */
 }
 
 /* Opcao 4. */
 void acao_listar_por_proteina(NoCategoria_t *cabeca)
 {
-    listar_decrescente(cabeca, 0, TRACOS_LONGO);
+    listar_decrescente(cabeca, 0); /* 0 = proteina */
 }
 
 /* Opcao 5. */
 void acao_faixa_energia(NoCategoria_t *cabeca)
 {
-    listar_faixa(cabeca, 1, TRACOS_LONGO);
+    listar_faixa(cabeca, 1); /* 1 = energia */
 }
 
 /* Opcao 6. */
 void acao_faixa_proteina(NoCategoria_t *cabeca)
 {
-    listar_faixa(cabeca, 0, TRACOS_CURTO);
+    listar_faixa(cabeca, 0); /* 0 = proteina */
 }
 
 /* Opcao 7. Copia o nome antes, porque o no da categoria e liberado. */
