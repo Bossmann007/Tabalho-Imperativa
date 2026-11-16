@@ -1,12 +1,17 @@
+/* alimento.h: tipo Alimento_t, enum das categorias e funcoes basicas. */
+
 #ifndef ALIMENTO_H
 #define ALIMENTO_H
 
+/* Tamanho maximo da descricao de um alimento e do nome de uma categoria. */
 #define TAM_MAX_DESCRICAO 128
+
+/* Numero de categorias da tabela TACO. */
 #define TOTAL_CATEGORIAS 15
 
 /*
- * Enumerador representando as 15 categorias da Tabela TACO.
- * O valor CAT_INVALIDA (-1) serve de sentinela para entradas nao reconhecidas.
+ * Categorias da tabela, em ordem alfabetica.
+ * CAT_INVALIDA marca um texto de categoria que nao foi reconhecido.
  */
 typedef enum {
     CAT_INVALIDA = -1,
@@ -25,35 +30,28 @@ typedef enum {
     CAT_PESCADOS_E_FRUTOS_DO_MAR,
     CAT_PRODUTOS_ACUCARADOS,
     CAT_VERDURAS_HORTALICAS_E_DERIVADOS
-} Categoria;
+} Categoria_e;
 
 /*
- * Estrutura representando um registro de alimento da TACO.
- * descricao possui tamanho fixo para permitir gravacao e leitura
- * direta em arquivo binario (sizeof(Alimento) constante).
+ * Um alimento da tabela. A descricao tem tamanho fixo para que cada
+ * registro ocupe sempre o mesmo numero de bytes no arquivo binario.
  */
 typedef struct {
     int numero;
     char descricao[TAM_MAX_DESCRICAO];
-    Categoria categoria;
+    Categoria_e categoria;
     double energia_kcal;
     double proteina_g;
-} Alimento;
+} Alimento_t;
 
-/*
- * Converte o texto da categoria lido do CSV para o respectivo valor do enum.
- * Retorna CAT_INVALIDA se o texto nao for reconhecido.
- */
-Categoria categoria_converter(const char *texto);
+/* Converte o nome da categoria (como esta no CSV) para o enum.
+ * Devolve CAT_INVALIDA se o nome nao existir. */
+Categoria_e categoria_converter(const char *texto);
 
-/*
- * Converte um valor do enum Categoria para sua descricao textual legivel.
- */
-const char *categoria_para_texto(Categoria categoria);
+/* Devolve o nome da categoria, ou "Desconhecida". */
+const char *categoria_para_texto(Categoria_e categoria);
 
-/*
- * Exibe as informacoes formatadas de um alimento na saida padrao.
- */
-void alimento_exibir(const Alimento *alimento);
+/* Mostra os dados de um alimento em uma linha. */
+void alimento_exibir(const Alimento_t *alimento);
 
 #endif /* ALIMENTO_H */

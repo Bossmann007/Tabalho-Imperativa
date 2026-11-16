@@ -1,48 +1,36 @@
+/* arvore.h: arvore binaria de busca que indexa os alimentos de uma categoria
+ * por energia ou por proteina. */
+
 #ifndef ARVORE_H
 #define ARVORE_H
 
-#include "alimento.h"
-
-/*
- * Declaracao adiantada para a estrutura NoAlimento (definida em lista.h).
- * Permite que o no da arvore aponte diretamente para o elemento na lista ligada,
- * conforme o requisito 8 da especificacao.
- */
+/* O no da arvore aponta para o no do alimento na lista (definido em lista.h).
+ * A declaracao incompleta basta aqui e evita incluir lista.h. */
 struct NoAlimento;
 
-/*
- * Estrutura do no de indexacao da arvore binaria de busca (BST).
- * Armazena a chave numerica (energia em kcal ou proteina em g) e
- * o apontador para o no do alimento correspondente na lista ligada.
- */
+/* Um no da arvore: a chave (energia ou proteina) e o alimento dono dela. */
 typedef struct NoArvore {
     double chave;
     struct NoAlimento *alimento;
     struct NoArvore *esquerda;
     struct NoArvore *direita;
-} NoArvore;
+} NoArvore_t;
 
-/*
- * Insere um novo no na arvore binaria de busca.
- * Chaves repetidas sao inseridas na subarvore direita.
- */
-NoArvore *arvore_inserir(NoArvore *raiz, double chave, struct NoAlimento *alimento);
+/* Insere a chave na arvore e devolve a raiz.
+ * Chave repetida vai para a direita. */
+NoArvore_t *arvore_inserir(NoArvore_t *raiz, double chave,
+                           struct NoAlimento *alimento);
 
-/*
- * Percorre e lista os alimentos em ordem decrescente da chave
- * utilizando percurso inverso (subarvore direita -> raiz -> subarvore esquerda).
- */
-void arvore_listar_decrescente(const NoArvore *raiz, int *contador);
+/* Mostra os alimentos da arvore da maior chave para a menor
+ * e soma em *contador quantos mostrou. */
+void arvore_listar_decrescente(const NoArvore_t *raiz, int *contador);
 
-/*
- * Percorre e lista os alimentos cuja chave esteja no intervalo [min, max],
- * tambem em ordem decrescente, podando ramos fora da faixa.
- */
-void arvore_listar_faixa(const NoArvore *raiz, double min, double max, int *contador);
+/* Mostra, da maior chave para a menor, so os alimentos com chave
+ * entre min e max, e soma em *contador quantos mostrou. */
+void arvore_listar_faixa(const NoArvore_t *raiz, double min, double max,
+                         int *contador);
 
-/*
- * Libera recursivamente toda a memoria alocada para os nos da arvore.
- */
-void arvore_liberar(NoArvore *raiz);
+/* Libera todos os nos da arvore. */
+void arvore_liberar(NoArvore_t *raiz);
 
 #endif /* ARVORE_H */

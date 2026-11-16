@@ -1,96 +1,61 @@
+/* lista.h: lista ligada de categorias, cada uma com sua lista de alimentos
+ * e suas duas arvores de indice. */
+
 #ifndef LISTA_H
 #define LISTA_H
 
 #include "alimento.h"
 #include "arvore.h"
 
-/*
- * No da lista ligada de alimentos pertencentes a uma categoria.
- * Armazena os dados do alimento e o ponteiro para o proximo alimento.
- */
+/* No da lista de alimentos de uma categoria. */
 typedef struct NoAlimento {
-    Alimento dado;
+    Alimento_t dado;
     struct NoAlimento *proximo;
-} NoAlimento;
+} NoAlimento_t;
 
-/*
- * No da lista ligada de categorias.
- * Cada categoria mantem:
- *  - Seu identificador enum e seu nome textual
- *  - Ponteiro para a cabeca da lista ligada de alimentos
- *  - Duas arvores binarias de indexacao (energia_kcal e proteina_g)
- *  - Quantidade total de alimentos da categoria
- *  - Ponteiro para o proximo no de categoria
- */
+/* No da lista de categorias. Guarda os alimentos da categoria em ordem
+ * alfabetica e as arvores que indexam energia e proteina. */
 typedef struct NoCategoria {
-    Categoria categoria;
+    Categoria_e categoria;
     char nome[TAM_MAX_DESCRICAO];
-    NoAlimento *alimentos;
-    NoArvore *arvore_energia;
-    NoArvore *arvore_proteina;
+    NoAlimento_t *alimentos;
+    NoArvore_t *arvore_energia;
+    NoArvore_t *arvore_proteina;
     int total_alimentos;
     struct NoCategoria *proximo;
-} NoCategoria;
+} NoCategoria_t;
 
-/*
- * Constroi as listas ligadas e as arvores binarias a partir de dados.bin.
- * Retorna o ponteiro para o primeiro no da lista de categorias.
- */
-NoCategoria *lista_carregar_de_binario(const char *caminho_bin, int *total_lidos);
+/* Le dados.bin e monta as listas e as arvores.
+ * Devolve a primeira categoria e coloca em *total_lidos quantos
+ * alimentos foram carregados. */
+NoCategoria_t *lista_carregar_de_binario(const char *caminho_bin,
+                                         int *total_lidos);
 
-/*
- * Insere um alimento na categoria apropriada, mantendo ordem alfabetica
- * da lista de categorias e ordem alfabetica dos alimentos da categoria.
- */
-void lista_inserir_alimento(NoCategoria **cabeca_categorias, const Alimento *alimento);
+/* Mostra as categorias numeradas, na ordem da lista. */
+void lista_exibir_categorias(const NoCategoria_t *cabeca);
 
-/*
- * Localiza ou cria e insere em ordem alfabetica um no de categoria na lista.
- */
-NoCategoria *lista_obter_ou_criar_categoria(NoCategoria **cabeca, Categoria cat, const char *nome);
+/* Devolve a categoria de posicao indice (comeca em 1), ou NULL. */
+NoCategoria_t *lista_obter_categoria_por_indice(NoCategoria_t *cabeca,
+                                                int indice);
 
-/*
- * Exibe todas as categorias cadastradas na ordem da lista (alfabetica).
- */
-void lista_exibir_categorias(const NoCategoria *cabeca);
+/* Mostra os alimentos da categoria em ordem alfabetica. */
+void lista_exibir_alimentos_categoria(const NoCategoria_t *categoria);
 
-/*
- * Retorna o ponteiro para a categoria correspondente ao indice (1-baseado).
- */
-NoCategoria *lista_obter_categoria_por_indice(NoCategoria *cabeca, int indice);
+/* Remove da categoria o alimento com esse numero e refaz as arvores.
+ * Devolve 1 se removeu ou 0 se nao achou. */
+int lista_remover_alimento(NoCategoria_t *categoria, int numero_alimento);
 
-/*
- * Exibe todos os alimentos de uma categoria na ordem da lista (alfabetica).
- */
-void lista_exibir_alimentos_categoria(const NoCategoria *categoria);
+/* Remove a categoria da lista e libera tudo o que ela tem.
+ * Devolve 1 se removeu ou 0 se nao achou. */
+int lista_remover_categoria(NoCategoria_t **cabeca_categorias,
+                            Categoria_e cat);
 
-/*
- * Remove um alimento especifico (pelo numero do alimento) da categoria.
- * Reconstrói automaticamente as duas arvores binarias de indexacao.
- * Retorna 1 se removeu com sucesso, ou 0 se nao encontrou.
- */
-int lista_remover_alimento(NoCategoria *categoria, int numero_alimento);
+/* Grava todos os alimentos que restaram em dados.bin.
+ * Devolve quantos gravou, ou -1 em caso de erro. */
+int lista_salvar_binario(const NoCategoria_t *cabeca,
+                         const char *caminho_bin);
 
-/*
- * Remove uma categoria inteira da lista, liberando seus alimentos e arvores.
- * Retorna 1 se removeu com sucesso, ou 0 se nao encontrou.
- */
-int lista_remover_categoria(NoCategoria **cabeca_categorias, Categoria cat);
-
-/*
- * Reconstrói as duas arvores binarias de indexacao da categoria a partir da lista de alimentos.
- */
-void categoria_reconstruir_arvores(NoCategoria *cat);
-
-/*
- * Grava todos os alimentos atualmente na memoria de volta para o arquivo dados.bin.
- * Retorna a quantidade total de registros gravados.
- */
-int lista_salvar_binario(const NoCategoria *cabeca, const char *caminho_bin);
-
-/*
- * Libera recursivamente toda a memoria alocada (listas e arvores).
- */
-void lista_liberar_tudo(NoCategoria **cabeca);
+/* Libera todas as categorias, alimentos e arvores e zera a cabeca. */
+void lista_liberar_tudo(NoCategoria_t **cabeca);
 
 #endif /* LISTA_H */
