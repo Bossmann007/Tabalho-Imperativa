@@ -6,7 +6,7 @@ echo =====================================================
 echo.
 
 echo [1/2] Compilando P1.exe...
-gcc -Wall -Wextra -std=c99 P1.c alimento.c arquivo.c -o P1.exe
+gcc -Wall -Wextra -std=c99 -pedantic-errors -Wmissing-prototypes P1.c alimento.c arquivo.c interface.c lista.c arvore.c -o P1.exe
 if %ERRORLEVEL% neq 0 (
     echo ERRO na compilacao de P1!
     pause
@@ -16,7 +16,7 @@ echo P1.exe compilado com sucesso!
 
 echo.
 echo [2/2] Compilando P2.exe...
-gcc -Wall -Wextra -std=c99 P2.c alimento.c arvore.c lista.c -o P2.exe
+gcc -Wall -Wextra -std=c99 -pedantic-errors -Wmissing-prototypes P2.c alimento.c arquivo.c arvore.c lista.c interface.c -o P2.exe
 if %ERRORLEVEL% neq 0 (
     echo ERRO na compilacao de P2!
     pause

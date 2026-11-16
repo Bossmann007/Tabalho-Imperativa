@@ -1,16 +1,16 @@
+/* alimento.c: conversao de categorias e exibicao de um alimento. */
+
+#include "alimento.h"
 #include <stdio.h>
 #include <string.h>
-#include "alimento.h"
 
-/*
- * Mapeamento das strings das categorias para seus respectivos valores enum.
- */
+/* Liga o nome de uma categoria ao seu valor no enum. */
 typedef struct {
     const char *texto;
-    Categoria categoria;
-} MapeamentoCategoria;
+    Categoria_e categoria;
+} MapeamentoCategoria_t;
 
-static const MapeamentoCategoria TABELA_CATEGORIAS[TOTAL_CATEGORIAS] = {
+static const MapeamentoCategoria_t TABELA_CATEGORIAS[TOTAL_CATEGORIAS] = {
     {"Alimentos preparados", CAT_ALIMENTOS_PREPARADOS},
     {"Bebidas (alcoólicas e não alcoólicas)", CAT_BEBIDAS},
     {"Carnes e derivados", CAT_CARNES_E_DERIVADOS},
@@ -21,60 +21,54 @@ static const MapeamentoCategoria TABELA_CATEGORIAS[TOTAL_CATEGORIAS] = {
     {"Leite e derivados", CAT_LEITE_E_DERIVADOS},
     {"Miscelâneas", CAT_MISCELANEAS},
     {"Nozes e sementes", CAT_NOZES_E_SEMENTES},
-    {"Outros alimentos industrializados", CAT_OUTROS_ALIMENTOS_INDUSTRIALIZADOS},
+    {"Outros alimentos industrializados",
+        CAT_OUTROS_ALIMENTOS_INDUSTRIALIZADOS},
     {"Ovos e derivados", CAT_OVOS_E_DERIVADOS},
     {"Pescados e frutos do mar", CAT_PESCADOS_E_FRUTOS_DO_MAR},
     {"Produtos açucarados", CAT_PRODUTOS_ACUCARADOS},
     {"Verduras, hortaliças e derivados", CAT_VERDURAS_HORTALICAS_E_DERIVADOS}
 };
 
-/*
- * Converte a string de categoria lida do CSV para a constante do enum.
- * Usa busca linear sem 'break' nem 'continue', com um unico return.
- */
-Categoria categoria_converter(const char *texto) {
-    Categoria resultado = CAT_INVALIDA;
+/* Procura o nome na tabela e devolve a categoria, ou CAT_INVALIDA. */
+Categoria_e categoria_converter(const char *texto)
+{
+    Categoria_e resultado = CAT_INVALIDA;
     int encontrado = 0;
-    int i = 0;
+    int i;
 
-    if (texto != NULL) {
-        while (i < TOTAL_CATEGORIAS && !encontrado) {
+    if (texto) {
+        for (i = 0; i < TOTAL_CATEGORIAS && !encontrado; i++) {
             if (strcmp(texto, TABELA_CATEGORIAS[i].texto) == 0) {
                 resultado = TABELA_CATEGORIAS[i].categoria;
                 encontrado = 1;
             }
-            i++;
         }
     }
 
     return resultado;
 }
 
-/*
- * Retorna o texto correspondente a uma constante do enum Categoria.
- * Possui um unico return no final.
- */
-const char *categoria_para_texto(Categoria categoria) {
+/* Procura a categoria na tabela e devolve o nome, ou "Desconhecida". */
+const char *categoria_para_texto(Categoria_e categoria)
+{
     const char *resultado = "Desconhecida";
     int encontrado = 0;
-    int i = 0;
+    int i;
 
-    while (i < TOTAL_CATEGORIAS && !encontrado) {
+    for (i = 0; i < TOTAL_CATEGORIAS && !encontrado; i++) {
         if (TABELA_CATEGORIAS[i].categoria == categoria) {
             resultado = TABELA_CATEGORIAS[i].texto;
             encontrado = 1;
         }
-        i++;
     }
 
     return resultado;
 }
 
-/*
- * Exibe um alimento com formatacao legivel.
- */
-void alimento_exibir(const Alimento *alimento) {
-    if (alimento != NULL) {
+/* Mostra numero, descricao, categoria, energia e proteina. */
+void alimento_exibir(const Alimento_t *alimento)
+{
+    if (alimento) {
         printf("[%3d] %-45s | %-35s | %6.1f kcal | %5.1f g prot\n",
                alimento->numero,
                alimento->descricao,

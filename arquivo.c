@@ -1,50 +1,42 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "arquivo.h"
+/* arquivo.c: leitura do CSV e leitura/gravacao do arquivo binario. */
 
+#include "arquivo.h"
+#include <stdio.h>
+#include <string.h>
+
+/* Tamanho maximo de uma linha do CSV. */
 #define TAM_LINHA_BUFFER 512
 
-/*
- * Remove os caracteres de quebra de linha ('\r' e '\n') do final de uma string.
- * Nao utiliza break nem continue.
- */
-static void remover_quebra_linha(char *linha) {
-    if (linha != NULL) {
-        size_t tamanho = strlen(linha);
-        while (tamanho > 0 && (linha[tamanho - 1] == '\n' || linha[tamanho - 1] == '\r')) {
-            linha[tamanho - 1] = '\0';
-            tamanho--;
-        }
-    }
-}
+/* Tamanho maximo do caminho alternativo "<caminho>.txt". */
+#define TAM_CAMINHO 260
 
-/*
- * Le registros de alimentos de um arquivo CSV com separador ';'.
- * Suporta fallback automatico para extensao .txt se necessario.
- */
-int arquivo_ler_csv(const char *caminho, Alimento *vetor, int capacidade) {
+static void remover_quebra_linha(char *linha);
+
+/* Le o CSV linha a linha. Se o arquivo nao abrir, tenta o mesmo nome
+ * com ".txt" no fim (caso tenha sido salvo como alimentos.csv.txt). */
+int arquivo_ler_csv(const char *caminho, Alimento_t *vetor, int capacidade)
+{
     int total_lidos = -1;
     FILE *arquivo = NULL;
 
-    if (caminho != NULL && vetor != NULL && capacidade > 0) {
+    if (caminho && vetor && capacidade > 0) {
         arquivo = fopen(caminho, "r");
 
-        /* Fallback: caso o arquivo tenha sido salvo como .csv.txt */
-        if (arquivo == NULL && strstr(caminho, ".txt") == NULL) {
-            char caminho_alternativo[260];
-            snprintf(caminho_alternativo, sizeof(caminho_alternativo), "%s.txt", caminho);
+        if (!arquivo && !strstr(caminho, ".txt")) {
+            char caminho_alternativo[TAM_CAMINHO];
+            snprintf(caminho_alternativo, sizeof(caminho_alternativo),
+                     "%s.txt", caminho);
             arquivo = fopen(caminho_alternativo, "r");
         }
 
-        if (arquivo != NULL) {
+        if (arquivo) {
             char buffer[TAM_LINHA_BUFFER];
             int continuar = 1;
             total_lidos = 0;
 
-            /* Descarta a primeira linha (cabecalho: numero;descricao;...) */
-            if (fgets(buffer, sizeof(buffer), arquivo) != NULL) {
-                while (continuar && fgets(buffer, sizeof(buffer), arquivo) != NULL) {
+            /* A primeira linha e o cabecalho e e descartada. */
+            if (fgets(buffer, sizeof(buffer), arquivo)) {
+                while (continuar && fgets(buffer, sizeof(buffer), arquivo)) {
                     if (total_lidos < capacidade) {
                         int numero = 0;
                         char desc[TAM_MAX_DESCRICAO];
@@ -54,19 +46,22 @@ int arquivo_ler_csv(const char *caminho, Alimento *vetor, int capacidade) {
 
                         remover_quebra_linha(buffer);
 
-                        /* Formato: numero;descricao;categoria;energia_kcal;proteina_g */
+                        /* numero;descricao;categoria;energia;proteina */
                         if (sscanf(buffer, "%d;%127[^;];%127[^;];%lf;%lf",
-                                   &numero, desc, cat_texto, &kcal, &prot) == 5) {
-                            vetor[total_lidos].numero = numero;
-                            strncpy(vetor[total_lidos].descricao, desc, TAM_MAX_DESCRICAO - 1);
-                            vetor[total_lidos].descricao[TAM_MAX_DESCRICAO - 1] = '\0';
-                            vetor[total_lidos].categoria = categoria_converter(cat_texto);
-                            vetor[total_lidos].energia_kcal = kcal;
-                            vetor[total_lidos].proteina_g = prot;
+                                   &numero, desc, cat_texto,
+                                   &kcal, &prot) == 5) {
+                            Alimento_t *novo = &vetor[total_lidos];
+                            novo->numero = numero;
+                            strncpy(novo->descricao, desc,
+                                    TAM_MAX_DESCRICAO - 1);
+                            novo->descricao[TAM_MAX_DESCRICAO - 1] = '\0';
+                            novo->categoria = categoria_converter(cat_texto);
+                            novo->energia_kcal = kcal;
+                            novo->proteina_g = prot;
                             total_lidos++;
                         }
                     } else {
-                        /* Capacidade maxima do vetor atingida */
+                        /* O vetor encheu. */
                         continuar = 0;
                     }
                 }
@@ -79,18 +74,34 @@ int arquivo_ler_csv(const char *caminho, Alimento *vetor, int capacidade) {
     return total_lidos;
 }
 
-/*
- * Grava o vetor de alimentos em formato binario direto.
- */
-int arquivo_gravar_binario(const char *caminho, const Alimento *vetor, int quantidade) {
+/* Tira o '\n' e o '\r' do fim da linha. */
+static void remover_quebra_linha(char *linha)
+{
+    if (linha) {
+        size_t tamanho = strlen(linha);
+        while (tamanho > 0 && (linha[tamanho - 1] == '\n' ||
+                               linha[tamanho - 1] == '\r')) {
+            linha[tamanho - 1] = '\0';
+            tamanho--;
+        }
+    }
+}
+
+/* Grava o vetor inteiro de uma vez com fwrite. */
+int arquivo_gravar_binario(const char *caminho, const Alimento_t *vetor,
+                           int quantidade)
+{
     int total_gravados = -1;
     FILE *arquivo = NULL;
 
-    if (caminho != NULL && vetor != NULL && quantidade > 0) {
+    if (caminho && quantidade >= 0 && (vetor || quantidade == 0)) {
         arquivo = fopen(caminho, "wb");
-        if (arquivo != NULL) {
-            size_t gravados = fwrite(vetor, sizeof(Alimento), (size_t)quantidade, arquivo);
-            total_gravados = (int)gravados;
+        if (arquivo) {
+            total_gravados = 0;
+            if (quantidade > 0) {
+                total_gravados = (int)fwrite(vetor, sizeof(Alimento_t),
+                                             (size_t)quantidade, arquivo);
+            }
             fclose(arquivo);
         }
     }
@@ -98,18 +109,18 @@ int arquivo_gravar_binario(const char *caminho, const Alimento *vetor, int quant
     return total_gravados;
 }
 
-/*
- * Le alimentos previamente gravados em formato binario.
- */
-int arquivo_ler_binario(const char *caminho, Alimento *vetor, int capacidade) {
+/* Le os registros com fread, no maximo capacidade. */
+int arquivo_ler_binario(const char *caminho, Alimento_t *vetor,
+                        int capacidade)
+{
     int total_lidos = -1;
     FILE *arquivo = NULL;
 
-    if (caminho != NULL && vetor != NULL && capacidade > 0) {
+    if (caminho && vetor && capacidade > 0) {
         arquivo = fopen(caminho, "rb");
-        if (arquivo != NULL) {
-            size_t lidos = fread(vetor, sizeof(Alimento), (size_t)capacidade, arquivo);
-            total_lidos = (int)lidos;
+        if (arquivo) {
+            total_lidos = (int)fread(vetor, sizeof(Alimento_t),
+                                     (size_t)capacidade, arquivo);
             fclose(arquivo);
         }
     }
@@ -117,16 +128,15 @@ int arquivo_ler_binario(const char *caminho, Alimento *vetor, int capacidade) {
     return total_lidos;
 }
 
-/*
- * Retorna o tamanho total do arquivo em bytes.
- */
-long arquivo_obter_tamanho(const char *caminho) {
+/* Vai ao fim do arquivo e usa ftell para saber o tamanho. */
+long arquivo_obter_tamanho(const char *caminho)
+{
     long tamanho = -1;
     FILE *arquivo = NULL;
 
-    if (caminho != NULL) {
+    if (caminho) {
         arquivo = fopen(caminho, "rb");
-        if (arquivo != NULL) {
+        if (arquivo) {
             if (fseek(arquivo, 0, SEEK_END) == 0) {
                 tamanho = ftell(arquivo);
             }

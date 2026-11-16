@@ -1,50 +1,49 @@
-#include <stdio.h>
-#include <stdlib.h>
+/* arvore.c: arvore binaria de busca usada como indice de energia e proteina. */
+
 #include "arvore.h"
 #include "lista.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-/*
- * Insere um novo no na arvore binaria de busca (BST).
- * Chaves duplicadas sao direcionadas para a subarvore direita,
- * garantindo estabilidade e permitindo alimentos com mesmo valor de energia/proteina.
- * Possui um unico return no final.
- */
-NoArvore *arvore_inserir(NoArvore *raiz, double chave, struct NoAlimento *alimento) {
-    NoArvore *resultado = raiz;
+/* Insere de forma recursiva: chave menor vai para a esquerda,
+ * maior ou igual vai para a direita. Devolve a raiz da subarvore. */
+NoArvore_t *arvore_inserir(NoArvore_t *raiz, double chave,
+                           struct NoAlimento *alimento)
+{
+    NoArvore_t *resultado = raiz;
 
-    if (raiz == NULL) {
-        NoArvore *novo = (NoArvore *)malloc(sizeof(NoArvore));
-        if (novo != NULL) {
-            novo->chave = chave;
-            novo->alimento = alimento;
-            novo->esquerda = NULL;
-            novo->direita = NULL;
+    if (!raiz) {
+        NoArvore_t *novo = malloc(sizeof(NoArvore_t));
+        if (!novo) {
+            fprintf(stderr,
+                    "ERRO FATAL: Memoria insuficiente para o no da arvore.\n");
+            exit(EXIT_FAILURE);
         }
+        novo->chave = chave;
+        novo->alimento = alimento;
+        novo->esquerda = NULL;
+        novo->direita = NULL;
         resultado = novo;
+    } else if (chave < raiz->chave) {
+        raiz->esquerda = arvore_inserir(raiz->esquerda, chave, alimento);
     } else {
-        if (chave < raiz->chave) {
-            raiz->esquerda = arvore_inserir(raiz->esquerda, chave, alimento);
-        } else {
-            raiz->direita = arvore_inserir(raiz->direita, chave, alimento);
-        }
-        resultado = raiz;
+        raiz->direita = arvore_inserir(raiz->direita, chave, alimento);
     }
 
     return resultado;
 }
 
-/*
- * Percorre a arvore em percurso inverso (direita -> raiz -> esquerda)
- * para exibir os alimentos em ordem estritamente decrescente da chave.
- */
-void arvore_listar_decrescente(const NoArvore *raiz, int *contador) {
-    if (raiz != NULL) {
+/* Percorre direita, raiz, esquerda: assim as chaves saem da maior
+ * para a menor. */
+void arvore_listar_decrescente(const NoArvore_t *raiz, int *contador)
+{
+    if (raiz) {
         arvore_listar_decrescente(raiz->direita, contador);
 
-        if (contador != NULL) {
+        if (contador) {
             (*contador)++;
         }
-        if (raiz->alimento != NULL) {
+        if (raiz->alimento) {
             alimento_exibir(&(raiz->alimento->dado));
         }
 
@@ -52,40 +51,39 @@ void arvore_listar_decrescente(const NoArvore *raiz, int *contador) {
     }
 }
 
-/*
- * Percorre a arvore binaria de busca exibindo apenas os alimentos cuja chave
- * esteja contida no intervalo [min, max], em ordem decrescente.
- * Aproveita as propriedades da BST para nao visitar subarvores que estao fora da faixa.
- */
-void arvore_listar_faixa(const NoArvore *raiz, double min, double max, int *contador) {
-    if (raiz != NULL) {
-        /* Se a raiz for menor ou igual ao maximo, podem existir chaves validas a direita */
+/* Mesmo percurso da listagem decrescente, mas so desce para um lado
+ * se ainda pode haver chaves da faixa nele. */
+void arvore_listar_faixa(const NoArvore_t *raiz, double min, double max,
+                         int *contador)
+{
+    if (raiz) {
+        /* A direita so tem chaves >= raiz; se a raiz ja passou de max,
+         * nada ali serve. */
         if (raiz->chave <= max) {
             arvore_listar_faixa(raiz->direita, min, max, contador);
         }
 
-        /* Se a chave da raiz estiver dentro do intervalo [min, max], exibe */
         if (raiz->chave >= min && raiz->chave <= max) {
-            if (contador != NULL) {
+            if (contador) {
                 (*contador)++;
             }
-            if (raiz->alimento != NULL) {
+            if (raiz->alimento) {
                 alimento_exibir(&(raiz->alimento->dado));
             }
         }
 
-        /* Se a raiz for maior ou igual ao minimo, podem existir chaves validas a esquerda */
+        /* A esquerda so tem chaves < raiz; se a raiz ja esta abaixo
+         * de min, nada ali serve. */
         if (raiz->chave >= min) {
             arvore_listar_faixa(raiz->esquerda, min, max, contador);
         }
     }
 }
 
-/*
- * Libera recursivamente toda a memoria alocada para os nos da arvore.
- */
-void arvore_liberar(NoArvore *raiz) {
-    if (raiz != NULL) {
+/* Libera os filhos primeiro e depois o proprio no. */
+void arvore_liberar(NoArvore_t *raiz)
+{
+    if (raiz) {
         arvore_liberar(raiz->esquerda);
         arvore_liberar(raiz->direita);
         free(raiz);
