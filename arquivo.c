@@ -35,7 +35,9 @@ int arquivo_ler_csv(const char *caminho, Alimento_t *vetor, int capacidade)
 
                         remover_quebra_linha(buffer);
 
-                        /* numero;descricao;categoria;energia;proteina */
+                        /* numero;descricao;categoria;energia;proteina
+                         * Na TACO, "NA", "Tr", "*" e campo em branco
+                         * ja foram gravados como 0 no alimentos.csv. */
                         if (sscanf(buffer, "%d;%127[^;];%127[^;];%lf;%lf",
                                    &numero, desc, cat_texto,
                                    &kcal, &prot) == 5) {

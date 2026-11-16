@@ -1,9 +1,8 @@
-/* interface.h: menu e leitura de dados do teclado (P2). */
+/* interface.h: menu, leitura do teclado e acoes de cada opcao (P2). */
 
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-#include "alimento.h"
 #include "lista.h"
 
 /* Valor lido quando a linha nao tem um numero. */
@@ -44,5 +43,36 @@ void ler_faixa(const char *grandeza, double *min, double *max);
 /* Mostra as categorias e pede uma pelo numero.
  * Devolve a categoria escolhida, ou NULL se o numero for invalido. */
 NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
+
+/* Mostra o titulo do P2 e avisa que vai carregar o arquivo. */
+void exibir_abertura(const char *caminho_bin);
+
+/* Acoes do menu: uma funcao para cada opcao. */
+
+/* Opcao 2: alimentos de uma categoria em ordem alfabetica. */
+void acao_listar_alimentos(NoCategoria_t *cabeca);
+
+/* Opcao 3: alimentos de uma categoria por energia decrescente. */
+void acao_listar_por_energia(NoCategoria_t *cabeca);
+
+/* Opcao 4: alimentos de uma categoria por proteina decrescente. */
+void acao_listar_por_proteina(NoCategoria_t *cabeca);
+
+/* Opcao 5: alimentos com energia entre um minimo e um maximo. */
+void acao_faixa_energia(NoCategoria_t *cabeca);
+
+/* Opcao 6: alimentos com proteina entre um minimo e um maximo. */
+void acao_faixa_proteina(NoCategoria_t *cabeca);
+
+/* Opcao 7: remove uma categoria. Devolve 1 se removeu, senao 0. */
+int acao_remover_categoria(NoCategoria_t **cabeca);
+
+/* Opcao 8: remove um alimento. Devolve 1 se removeu, senao 0. */
+int acao_remover_alimento(NoCategoria_t *cabeca);
+
+/* Opcao 9: grava o arquivo se houve remocao e libera a memoria.
+ * Devolve EXIT_SUCCESS, ou EXIT_FAILURE se nao conseguiu gravar. */
+int acao_encerrar(NoCategoria_t **cabeca, int dados_modificados,
+                  const char *caminho_bin);
 
 #endif /* INTERFACE_H */
