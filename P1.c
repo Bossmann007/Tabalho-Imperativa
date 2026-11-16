@@ -2,7 +2,7 @@
 
 #include "alimento.h"
 #include "arquivo.h"
-#include "interface.h"
+#include "amostra.h"
 #include <stdio.h>
 #include <stdlib.h>
 

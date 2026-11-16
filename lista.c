@@ -2,9 +2,22 @@
 
 #include "lista.h"
 #include "arquivo.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* Em UTF-8 as letras acentuadas usadas aqui tem 2 bytes: 0xC3 e depois
+ * um byte entre 0x80 e 0xBF. Maiuscula e minuscula diferem em 0x20. */
+#define UTF8_PRIMEIRO_BYTE 0xC3
+#define UTF8_SEGUNDO_MIN 0x80
+#define UTF8_SEGUNDO_MAX 0xBF
+#define UTF8_MINUSCULA_INICIO 0xA0
+#define UTF8_DIF_MAIUSCULA 0x20
+
+/* Letra base de cada minuscula de 0xC3 0xA0 (a com crase) ate 0xC3 0xBF.
+ * O ponto marca as que nao tratamos. */
+static const char BASE_ACENTOS[] = "aaaaa..ceeeeiiii..ooooo..uuuu...";
 
 static void lista_inserir_alimento(NoCategoria_t **cabeca_categorias,
                                    const Alimento_t *alimento);
@@ -13,6 +26,8 @@ static NoCategoria_t *lista_obter_ou_criar_categoria(NoCategoria_t **cabeca,
                                                      const char *nome);
 static void categoria_reconstruir_arvores(NoCategoria_t *cat);
 static void categoria_liberar(NoCategoria_t *cat);
+static int letra_base(const char **texto);
+static int comparar_texto(const char *a, const char *b);
 
 /* Le dados.bin inteiro para um vetor e insere alimento por alimento. */
 NoCategoria_t *lista_carregar_de_binario(const char *caminho_bin,
@@ -78,7 +93,8 @@ static void lista_inserir_alimento(NoCategoria_t **cabeca_categorias,
             /* Anda ate o primeiro alimento que vem depois do novo
              * em ordem alfabetica; o novo entra antes dele. */
             while (atual && !posicao_encontrada) {
-                if (strcmp(novo->dado.descricao, atual->dado.descricao) < 0) {
+                if (comparar_texto(novo->dado.descricao,
+                                   atual->dado.descricao) < 0) {
                     posicao_encontrada = 1;
                 } else {
                     anterior = atual;
@@ -148,7 +164,7 @@ static NoCategoria_t *lista_obter_ou_criar_categoria(NoCategoria_t **cabeca,
         /* Mesma ideia da insercao de alimentos: para no primeiro nome
          * que vem depois do novo. */
         while (atual_cat && !posicao_encontrada) {
-            if (strcmp(novo->nome, atual_cat->nome) < 0) {
+            if (comparar_texto(novo->nome, atual_cat->nome) < 0) {
                 posicao_encontrada = 1;
             } else {
                 anterior_cat = atual_cat;
@@ -353,6 +369,9 @@ int lista_salvar_binario(const NoCategoria_t *cabeca, const char *caminho_bin)
     }
 
     total_gravados = arquivo_gravar_binario(caminho_bin, vetor, quantidade);
+    if (total_gravados != quantidade) {
+        total_gravados = -1;
+    }
     free(vetor);
 
     return total_gravados;
@@ -392,4 +411,40 @@ static void categoria_liberar(NoCategoria_t *cat)
 
         free(cat);
     }
+}
+
+/* Le uma letra de *texto e avanca o ponteiro. Devolve a letra minuscula
+ * e sem acento (a letra acentuada ocupa 2 bytes em UTF-8). */
+static int letra_base(const char **texto)
+{
+    const unsigned char *p = (const unsigned char *)*texto;
+    int letra = tolower(p[0]);
+    int tamanho = 1;
+
+    if (p[0] == UTF8_PRIMEIRO_BYTE && p[1] >= UTF8_SEGUNDO_MIN &&
+        p[1] <= UTF8_SEGUNDO_MAX) {
+        int indice = (p[1] | UTF8_DIF_MAIUSCULA) - UTF8_MINUSCULA_INICIO;
+
+        if (BASE_ACENTOS[indice] != '.') {
+            letra = BASE_ACENTOS[indice];
+            tamanho = 2;
+        }
+    }
+
+    *texto += tamanho;
+    return letra;
+}
+
+/* Compara como o strcmp, mas ignora acento e maiuscula. */
+static int comparar_texto(const char *a, const char *b)
+{
+    int letra_a = letra_base(&a);
+    int letra_b = letra_base(&b);
+
+    while (letra_a == letra_b && letra_a != '\0') {
+        letra_a = letra_base(&a);
+        letra_b = letra_base(&b);
+    }
+
+    return letra_a - letra_b;
 }
