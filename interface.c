@@ -1,10 +1,22 @@
-/* interface.c: menu e leitura de dados do teclado (P2). */
+/* interface.c: menu, leitura do teclado e acoes de cada opcao (P2). */
 
 #include "interface.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /* Tamanho maximo de uma linha digitada pelo usuario. */
 #define TAM_ENTRADA 64
+
+/* Tamanhos da linha de tracos no fim das listagens por arvore. */
+#define TRACOS_CURTO 59
+#define TRACOS_LONGO 60
+
+static void exibir_rodape(const char *texto, int total, int tracos);
+static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
+                               int tracos);
+static void listar_faixa(NoCategoria_t *cabeca, int por_energia,
+                         int tracos);
 
 /* Mostra as opcoes de 1 a 9. */
 void exibir_menu_principal(void)
@@ -107,4 +119,190 @@ NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca)
     }
 
     return selecionada;
+}
+
+/* Banner do P2. */
+void exibir_abertura(const char *caminho_bin)
+{
+    printf("=====================================================\n");
+    printf("   PUCPR - Programacao Imperativa - Trabalho RA2     \n");
+    printf("   Programa P2: Estruturas Dinamicas (Etapa C)       \n");
+    printf("=====================================================\n\n");
+    printf("Carregando alimentos de '%s' para a memoria...\n", caminho_bin);
+}
+
+/* Linha de total e linha de tracos que fecham uma listagem. */
+static void exibir_rodape(const char *texto, int total, int tracos)
+{
+    int i;
+
+    printf("Total: %d %s.\n", total, texto);
+    for (i = 0; i < tracos; i++) {
+        putchar('-');
+    }
+    putchar('\n');
+}
+
+/* Opcoes 3 e 4: so muda a arvore usada e o titulo. */
+static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
+                               int tracos)
+{
+    NoCategoria_t *cat = selecionar_categoria(cabeca);
+
+    if (cat) {
+        const NoArvore_t *arvore = cat->arvore_proteina;
+        const char *grandeza = "PROTEINA";
+        int cont = 0;
+
+        if (por_energia) {
+            arvore = cat->arvore_energia;
+            grandeza = "ENERGIA";
+        }
+        printf("\n--- ALIMENTOS DE '%s' POR %s DECRESCENTE (ARVORE) ---\n",
+               cat->nome, grandeza);
+        arvore_listar_decrescente(arvore, &cont);
+        exibir_rodape("alimentos exibidos", cont, tracos);
+    }
+}
+
+/* Opcoes 5 e 6: le a faixa e lista pela arvore certa. */
+static void listar_faixa(NoCategoria_t *cabeca, int por_energia, int tracos)
+{
+    NoCategoria_t *cat = selecionar_categoria(cabeca);
+
+    if (cat) {
+        const NoArvore_t *arvore = cat->arvore_proteina;
+        const char *pergunta = "proteina (g)";
+        const char *grandeza = "PROTEINA";
+        const char *unidade = "G";
+        double min;
+        double max;
+        int cont = 0;
+
+        if (por_energia) {
+            arvore = cat->arvore_energia;
+            pergunta = "energia (kcal)";
+            grandeza = "ENERGIA";
+            unidade = "KCAL";
+        }
+        ler_faixa(pergunta, &min, &max);
+        printf("\n--- ALIMENTOS DE '%s' COM %s ENTRE %.1f E %.1f %s ---\n",
+               cat->nome, grandeza, min, max, unidade);
+        arvore_listar_faixa(arvore, min, max, &cont);
+        exibir_rodape("alimentos encontrados na faixa", cont, tracos);
+    }
+}
+
+/* Opcao 2. */
+void acao_listar_alimentos(NoCategoria_t *cabeca)
+{
+    NoCategoria_t *cat = selecionar_categoria(cabeca);
+
+    if (cat) {
+        lista_exibir_alimentos_categoria(cat);
+    }
+}
+
+/* Opcao 3. */
+void acao_listar_por_energia(NoCategoria_t *cabeca)
+{
+    listar_decrescente(cabeca, 1, TRACOS_CURTO);
+}
+
+/* Opcao 4. */
+void acao_listar_por_proteina(NoCategoria_t *cabeca)
+{
+    listar_decrescente(cabeca, 0, TRACOS_LONGO);
+}
+
+/* Opcao 5. */
+void acao_faixa_energia(NoCategoria_t *cabeca)
+{
+    listar_faixa(cabeca, 1, TRACOS_LONGO);
+}
+
+/* Opcao 6. */
+void acao_faixa_proteina(NoCategoria_t *cabeca)
+{
+    listar_faixa(cabeca, 0, TRACOS_CURTO);
+}
+
+/* Opcao 7. Copia o nome antes, porque o no da categoria e liberado. */
+int acao_remover_categoria(NoCategoria_t **cabeca)
+{
+    int removeu = 0;
+    NoCategoria_t *cat = selecionar_categoria(*cabeca);
+
+    if (cat) {
+        char nome_cat[TAM_MAX_DESCRICAO];
+
+        strncpy(nome_cat, cat->nome, sizeof(nome_cat) - 1);
+        nome_cat[sizeof(nome_cat) - 1] = '\0';
+        removeu = lista_remover_categoria(cabeca, cat->categoria);
+        if (removeu) {
+            printf("SUCESSO: Categoria '%s' e todos os seus "
+                   "alimentos foram removidos!\n", nome_cat);
+        } else {
+            printf("ERRO: Falha ao remover categoria.\n");
+        }
+    }
+
+    return removeu;
+}
+
+/* Opcao 8. Mostra os alimentos da categoria e pede o numero. */
+int acao_remover_alimento(NoCategoria_t *cabeca)
+{
+    int removeu = 0;
+    NoCategoria_t *cat = selecionar_categoria(cabeca);
+
+    if (cat) {
+        int num_alimento;
+
+        lista_exibir_alimentos_categoria(cat);
+        printf("Digite o numero do alimento que deseja remover: ");
+        num_alimento = ler_inteiro(LEITURA_INVALIDA);
+        removeu = lista_remover_alimento(cat, num_alimento);
+        if (removeu) {
+            printf("SUCESSO: Alimento %d removido e arvores de "
+                   "'%s' reconstruidas!\n", num_alimento, cat->nome);
+        } else {
+            printf("AVISO: Alimento com numero %d nao encontrado "
+                   "nesta categoria.\n", num_alimento);
+        }
+    }
+
+    return removeu;
+}
+
+/* Opcao 9. So regrava o arquivo se alguma coisa foi removida. */
+int acao_encerrar(NoCategoria_t **cabeca, int dados_modificados,
+                  const char *caminho_bin)
+{
+    int codigo_retorno = EXIT_SUCCESS;
+
+    if (dados_modificados) {
+        int gravados;
+
+        printf("\nAlteracoes detectadas. Regravando '%s' "
+               "atualizado...\n", caminho_bin);
+        gravados = lista_salvar_binario(*cabeca, caminho_bin);
+        if (gravados < 0) {
+            fprintf(stderr, "ERRO: Nao foi possivel gravar '%s'. "
+                    "As remocoes feitas nao foram salvas.\n", caminho_bin);
+            codigo_retorno = EXIT_FAILURE;
+        } else {
+            printf("SUCESSO: %d registros gravados na versao "
+                   "atualizada de '%s'.\n", gravados, caminho_bin);
+        }
+    } else {
+        printf("\nNenhuma alteracao nos dados. O arquivo '%s' "
+               "foi mantido intacto.\n", caminho_bin);
+    }
+
+    printf("Liberando toda a memoria alocada (listas e arvores)...\n");
+    lista_liberar_tudo(cabeca);
+    printf("Memoria liberada com sucesso. Programa finalizado.\n");
+
+    return codigo_retorno;
 }

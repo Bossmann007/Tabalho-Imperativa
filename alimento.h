@@ -11,10 +11,10 @@
 
 /*
  * Categorias da tabela, em ordem alfabetica.
- * CAT_INVALIDA marca um texto de categoria que nao foi reconhecido.
+ * CAT_INVALIDA fica por ultimo e marca um texto de categoria que nao foi
+ * reconhecido; o compilador escolhe o valor.
  */
 typedef enum {
-    CAT_INVALIDA = -1,
     CAT_ALIMENTOS_PREPARADOS,
     CAT_BEBIDAS,
     CAT_CARNES_E_DERIVADOS,
@@ -29,7 +29,8 @@ typedef enum {
     CAT_OVOS_E_DERIVADOS,
     CAT_PESCADOS_E_FRUTOS_DO_MAR,
     CAT_PRODUTOS_ACUCARADOS,
-    CAT_VERDURAS_HORTALICAS_E_DERIVADOS
+    CAT_VERDURAS_HORTALICAS_E_DERIVADOS,
+    CAT_INVALIDA
 } Categoria_e;
 
 /*
