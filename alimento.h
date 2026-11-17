@@ -57,4 +57,12 @@ void alimento_exibir(const Alimento_t *alimento);
 /* Se o texto for maior que a largura, corta e termina com "...". */
 void imprimir_alinhado(const char *texto, int largura);
 
+/* Mostra "ERRO FATAL: Memoria insuficiente para <motivo>." e encerra o programa. */
+/* Usada sempre que um malloc, calloc ou realloc devolve NULL. */
+void encerrar_sem_memoria(const char *motivo);
+
+/* Mostra o titulo do trabalho com a linha do programa (P1 ou P2) logo abaixo. */
+/* Fica aqui porque os dois programas usam este modulo. */
+void exibir_titulo(const char *linha_programa);
+
 #endif /* ALIMENTO_H */

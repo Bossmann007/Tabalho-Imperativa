@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ARQUIVO_DADOS_BIN "dados.bin"
 
 /* Carrega os dados e repete o menu ate o usuario escolher sair. */
 /* Devolve EXIT_SUCCESS, ou EXIT_FAILURE se nao carregou o arquivo ou nao conseguiu gravar no fim. */
@@ -72,7 +71,7 @@ int main(void)
             }
             break;
         case OPCAO_REMOVER_ALIMENTO:
-            if (acao_remover_alimento(lista_categorias)) {
+            if (acao_remover_alimento(&lista_categorias)) {
                 dados_modificados = 1;
             }
             break;

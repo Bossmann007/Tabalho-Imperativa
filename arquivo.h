@@ -5,6 +5,9 @@
 
 #include "alimento.h"
 
+/* Nome do arquivo binario que o P1 grava e o P2 le. */
+#define ARQUIVO_DADOS_BIN "dados.bin"
+
 /* Le o CSV num vetor dinamico e coloca em *total quantos leu (-1 se nao abriu). */
 /* Quem chama recebe o vetor e precisa liberar com free. */
 Alimento_t *arquivo_ler_csv(const char *caminho, int *total);

@@ -2,6 +2,7 @@
 
 #include "alimento.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* Nome mostrado para uma categoria que nao esta na tabela. */
@@ -107,4 +108,22 @@ void imprimir_alinhado(const char *texto, int largura)
             putchar(' ');
         }
     }
+}
+
+/* Um so lugar para o erro de falta de memoria, em vez de repetir em cada modulo. */
+/* Recebe o que o programa tentava fazer quando a memoria acabou. */
+void encerrar_sem_memoria(const char *motivo)
+{
+    fprintf(stderr, "ERRO FATAL: Memoria insuficiente para %s.\n", motivo);
+    exit(EXIT_FAILURE);
+}
+
+/* Titulo comum do P1 e do P2, para o mesmo texto nao ficar repetido nos dois. */
+/* Recebe a linha que diz qual programa esta rodando. */
+void exibir_titulo(const char *linha_programa)
+{
+    printf("=====================================================\n");
+    printf("   PUCPR - Programacao Imperativa - Trabalho RA2     \n");
+    printf("%s\n", linha_programa);
+    printf("=====================================================\n\n");
 }

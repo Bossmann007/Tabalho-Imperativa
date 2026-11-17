@@ -22,10 +22,7 @@ static void exibir_rodape(const char *texto, int total);
 /* Mostra o titulo do P2 e o arquivo que sera carregado. */
 void exibir_abertura(const char *caminho_bin)
 {
-    printf("=====================================================\n");
-    printf("   PUCPR - Programacao Imperativa - Trabalho RA2     \n");
-    printf("   Programa P2: Estruturas Dinamicas (Etapa C)       \n");
-    printf("=====================================================\n\n");
+    exibir_titulo("   Programa P2: Estruturas Dinamicas (Etapa C)       ");
     printf("Carregando alimentos de '%s' para a memoria...\n", caminho_bin);
 }
 
@@ -259,10 +256,11 @@ int acao_remover_categoria(NoCategoria_t **cabeca)
 
 /* Opcao 8: mostra os alimentos da categoria e remove o numero digitado. */
 /* Devolve 1 se removeu e 0 se o numero nao estava na categoria. */
-int acao_remover_alimento(NoCategoria_t *cabeca)
+/* Recebe ponteiro para a cabeca porque uma categoria que fica vazia e removida. */
+int acao_remover_alimento(NoCategoria_t **cabeca)
 {
     int removeu = 0;
-    NoCategoria_t *no_categoria = selecionar_categoria(cabeca);
+    NoCategoria_t *no_categoria = selecionar_categoria(*cabeca);
 
     if (no_categoria) {
         int num_alimento;
@@ -274,6 +272,14 @@ int acao_remover_alimento(NoCategoria_t *cabeca)
         if (removeu) {
             printf("SUCESSO: Alimento %d removido e arvores de "
                    "'%s' reconstruidas!\n", num_alimento, categoria_para_texto(no_categoria->categoria));
+            /* Sem alimentos a categoria sairia do arquivo na gravacao; */
+            /* removendo agora, o menu fica igual ao que o P2 carrega na proxima vez. */
+            if (no_categoria->total_alimentos == 0) {
+                const char *nome = categoria_para_texto(no_categoria->categoria);
+
+                lista_remover_categoria(cabeca, no_categoria->categoria);
+                printf("AVISO: Categoria '%s' ficou sem alimentos e foi removida.\n", nome);
+            }
         } else {
             printf("AVISO: Alimento com numero %d nao encontrado "
                    "nesta categoria.\n", num_alimento);

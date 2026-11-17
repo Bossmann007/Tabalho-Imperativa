@@ -3,7 +3,6 @@
 
 #include "arvore.h"
 #include "lista.h"
-#include <stdio.h>
 #include <stdlib.h>
 
 /* Insere a chave na arvore de forma recursiva e devolve a raiz da subarvore. */
@@ -18,9 +17,7 @@ NoArvore_t *arvore_inserir(NoArvore_t *raiz, double chave,
         /* malloc basta porque todos os campos sao preenchidos logo abaixo. */
         NoArvore_t *novo = malloc(sizeof(NoArvore_t));
         if (!novo) {
-            fprintf(stderr,
-                    "ERRO FATAL: Memoria insuficiente para o no da arvore.\n");
-            exit(EXIT_FAILURE);
+            encerrar_sem_memoria("o no da arvore");
         }
         novo->chave = chave;
         novo->alimento = alimento;

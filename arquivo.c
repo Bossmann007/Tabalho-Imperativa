@@ -35,8 +35,7 @@ Alimento_t *arquivo_ler_csv(const char *caminho, int *total)
         /* Comeca com espaco para CAPACIDADE_INICIAL alimentos; calloc ja zera tudo. */
         vetor = calloc((size_t)capacidade, sizeof(Alimento_t));
         if (!vetor) {
-            fprintf(stderr, "ERRO FATAL: Memoria insuficiente para ler '%s'.\n", caminho);
-            exit(EXIT_FAILURE);
+            encerrar_sem_memoria("ler o arquivo CSV");
         }
         total_lidos = 0;
         /* A primeira linha e o cabecalho (nomes das colunas) e e descartada. */
@@ -74,6 +73,7 @@ static int linha_para_alimento(const char *linha, Alimento_t *alimento)
     /* Zera o registro antes, para os bytes que sobram na descricao ficarem sempre 0. */
     memset(alimento, 0, sizeof(Alimento_t));
     /* NA, Tr, '*' e branco da TACO gravados como 0 */
+    /* (a TACO nao traz o valor medido nesses casos; 0 marca o dado ausente) */
     if (sscanf(linha, formato, &alimento->numero,
                alimento->descricao, categoria, &alimento->energia_kcal,
                &alimento->proteina_g) == CAMPOS_POR_LINHA) {
@@ -96,8 +96,7 @@ static Alimento_t *vetor_aumentar(Alimento_t *vetor, int *capacidade)
     /* Se falhou, libera o vetor antigo, mostra o erro e encerra. */
     if (!novo) {
         free(vetor);
-        fprintf(stderr, "ERRO FATAL: Memoria insuficiente para aumentar o vetor.\n");
-        exit(EXIT_FAILURE);
+        encerrar_sem_memoria("aumentar o vetor");
     }
     *capacidade = *capacidade * 2;
 

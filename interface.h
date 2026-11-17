@@ -46,7 +46,8 @@ void listar_faixa(NoCategoria_t *cabeca, int por_energia);
 int acao_remover_categoria(NoCategoria_t **cabeca);
 
 /* Opcao 8: remove um alimento; devolve 1 se removeu. */
-int acao_remover_alimento(NoCategoria_t *cabeca);
+/* Se a categoria ficar sem alimentos, ela sai da lista (por isso o ponteiro para a cabeca). */
+int acao_remover_alimento(NoCategoria_t **cabeca);
 
 /* Opcao 9: grava se houve remocao, libera a memoria e devolve o codigo. */
 /* O codigo devolvido e o que o main retorna (EXIT_SUCCESS ou EXIT_FAILURE). */

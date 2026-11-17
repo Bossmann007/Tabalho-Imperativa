@@ -50,9 +50,7 @@ NoCategoria_t *lista_carregar_de_binario(const char *caminho_bin,
 
         /* Sem memoria nao da para continuar: mostra o erro e encerra. */
         if (!vetor) {
-            fprintf(stderr, "ERRO FATAL: Memoria insuficiente para ler '%s'.\n",
-                    caminho_bin);
-            exit(EXIT_FAILURE);
+            encerrar_sem_memoria("ler o arquivo binario");
         }
 
         /* Le tudo de uma vez e depois coloca cada alimento na lista da sua categoria. */
@@ -87,8 +85,7 @@ static void lista_inserir_alimento(NoCategoria_t **cabeca_categorias,
     NoAlimento_t *atual = no_categoria->alimentos;
 
     if (!novo) {
-        fprintf(stderr, "ERRO FATAL: Memoria insuficiente para o no do alimento.\n");
-        exit(EXIT_FAILURE);
+        encerrar_sem_memoria("o no do alimento");
     }
     novo->dado = *alimento;
 
@@ -140,8 +137,7 @@ static NoCategoria_t *lista_obter_ou_criar_categoria(NoCategoria_t **cabeca,
         /* Nao existia: cria o no zerado (sem alimentos, arvores vazias, total 0). */
         resultado = calloc(1, sizeof(NoCategoria_t));
         if (!resultado) {
-            fprintf(stderr, "ERRO FATAL: Memoria insuficiente para o no da categoria.\n");
-            exit(EXIT_FAILURE);
+            encerrar_sem_memoria("o no da categoria");
         }
         /* Liga a nova categoria entre anterior e atual, como na lista de alimentos. */
         resultado->categoria = categoria;
@@ -325,10 +321,7 @@ int lista_salvar_binario(const NoCategoria_t *cabeca, const char *caminho_bin)
     if (quantidade > 0) {
         vetor = calloc((size_t)quantidade, sizeof(Alimento_t));
         if (!vetor) {
-            fprintf(stderr,
-                    "ERRO FATAL: Memoria insuficiente para gravar '%s'.\n",
-                    caminho_bin);
-            exit(EXIT_FAILURE);
+            encerrar_sem_memoria("gravar o arquivo binario");
         }
 
         /* Segunda passada: copia os alimentos, categoria por categoria, para o vetor. */
