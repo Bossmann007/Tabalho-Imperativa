@@ -12,11 +12,25 @@
 #define TRACOS_CURTO 59
 #define TRACOS_LONGO 60
 
-static void exibir_rodape(const char *texto, int total, int tracos);
+/* Qual arvore as listagens usam. */
+#define POR_PROTEINA 0
+#define POR_ENERGIA 1
+
 static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
                                int tracos);
 static void listar_faixa(NoCategoria_t *cabeca, int por_energia,
                          int tracos);
+static void exibir_rodape(const char *texto, int total, int tracos);
+
+/* Mostra o titulo do P2 e o arquivo que sera carregado. */
+void exibir_abertura(const char *caminho_bin)
+{
+    printf("=====================================================\n");
+    printf("   PUCPR - Programacao Imperativa - Trabalho RA2     \n");
+    printf("   Programa P2: Estruturas Dinamicas (Etapa C)       \n");
+    printf("=====================================================\n\n");
+    printf("Carregando alimentos de '%s' para a memoria...\n", caminho_bin);
+}
 
 /* Mostra as opcoes de 1 a 9. */
 void exibir_menu_principal(void)
@@ -57,9 +71,7 @@ OpcaoMenu_e ler_opcao_menu(void)
     return opcao;
 }
 
-/* Le a linha inteira com fgets e tira o numero com sscanf.
- * No fim da entrada devolve valor_fim_entrada; no menu isso e
- * OPCAO_ENCERRAR, e o programa termina em vez de ficar em loop. */
+/* Le a linha com fgets e tira o inteiro com sscanf. */
 int ler_inteiro(int valor_fim_entrada)
 {
     char buffer[TAM_ENTRADA];
@@ -74,36 +86,17 @@ int ler_inteiro(int valor_fim_entrada)
     return valor;
 }
 
-/* Le a linha inteira com fgets e tira o numero com sscanf. */
-double ler_double(void)
+/* Opcao 2: mostra os alimentos da categoria escolhida. */
+void acao_listar_alimentos(NoCategoria_t *cabeca)
 {
-    char buffer[TAM_ENTRADA];
-    double valor = 0.0;
+    NoCategoria_t *cat = selecionar_categoria(cabeca);
 
-    if (fgets(buffer, sizeof(buffer), stdin)) {
-        sscanf(buffer, "%lf", &valor);
-    }
-
-    return valor;
-}
-
-/* Pede minimo e maximo e garante que *min <= *max. */
-void ler_faixa(const char *grandeza, double *min, double *max)
-{
-    printf("Informe o valor MINIMO de %s: ", grandeza);
-    *min = ler_double();
-    printf("Informe o valor MAXIMO de %s: ", grandeza);
-    *max = ler_double();
-
-    if (*min > *max) {
-        double temp = *min;
-        *min = *max;
-        *max = temp;
+    if (cat) {
+        lista_exibir_alimentos_categoria(cat);
     }
 }
 
-/* Mostra a lista de categorias e le o numero escolhido.
- * No fim da entrada le LEITURA_INVALIDA. */
+/* Mostra a lista de categorias e le o numero escolhido. */
 NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca)
 {
     NoCategoria_t *selecionada = NULL;
@@ -121,29 +114,31 @@ NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca)
     return selecionada;
 }
 
-/* Banner do P2. */
-void exibir_abertura(const char *caminho_bin)
+/* Opcao 3: lista por energia decrescente. */
+void acao_listar_por_energia(NoCategoria_t *cabeca)
 {
-    printf("=====================================================\n");
-    printf("   PUCPR - Programacao Imperativa - Trabalho RA2     \n");
-    printf("   Programa P2: Estruturas Dinamicas (Etapa C)       \n");
-    printf("=====================================================\n\n");
-    printf("Carregando alimentos de '%s' para a memoria...\n", caminho_bin);
+    listar_decrescente(cabeca, POR_ENERGIA, TRACOS_CURTO);
 }
 
-/* Linha de total e linha de tracos que fecham uma listagem. */
-static void exibir_rodape(const char *texto, int total, int tracos)
+/* Opcao 4: lista por proteina decrescente. */
+void acao_listar_por_proteina(NoCategoria_t *cabeca)
 {
-    int i;
-
-    printf("Total: %d %s.\n", total, texto);
-    for (i = 0; i < tracos; i++) {
-        putchar('-');
-    }
-    putchar('\n');
+    listar_decrescente(cabeca, POR_PROTEINA, TRACOS_LONGO);
 }
 
-/* Opcoes 3 e 4: so muda a arvore usada e o titulo. */
+/* Opcao 5: filtra por faixa de energia. */
+void acao_faixa_energia(NoCategoria_t *cabeca)
+{
+    listar_faixa(cabeca, POR_ENERGIA, TRACOS_LONGO);
+}
+
+/* Opcao 6: filtra por faixa de proteina. */
+void acao_faixa_proteina(NoCategoria_t *cabeca)
+{
+    listar_faixa(cabeca, POR_PROTEINA, TRACOS_CURTO);
+}
+
+/* Lista uma categoria pela arvore de energia ou de proteina, da maior para a menor. */
 static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
                                int tracos)
 {
@@ -165,7 +160,7 @@ static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
     }
 }
 
-/* Opcoes 5 e 6: le a faixa e lista pela arvore certa. */
+/* Le a faixa e lista a categoria pela arvore de energia ou de proteina. */
 static void listar_faixa(NoCategoria_t *cabeca, int por_energia, int tracos)
 {
     NoCategoria_t *cat = selecionar_categoria(cabeca);
@@ -193,41 +188,49 @@ static void listar_faixa(NoCategoria_t *cabeca, int por_energia, int tracos)
     }
 }
 
-/* Opcao 2. */
-void acao_listar_alimentos(NoCategoria_t *cabeca)
+/* Pede minimo e maximo e garante que o minimo nao passa do maximo. */
+void ler_faixa(const char *grandeza, double *min, double *max)
 {
-    NoCategoria_t *cat = selecionar_categoria(cabeca);
+    double troca;
 
-    if (cat) {
-        lista_exibir_alimentos_categoria(cat);
+    printf("Informe o valor MINIMO de %s: ", grandeza);
+    *min = ler_double();
+    printf("Informe o valor MAXIMO de %s: ", grandeza);
+    *max = ler_double();
+
+    if (*min > *max) {
+        troca = *min;
+        *min = *max;
+        *max = troca;
     }
 }
 
-/* Opcao 3. */
-void acao_listar_por_energia(NoCategoria_t *cabeca)
+/* Le a linha com fgets e tira o numero real com sscanf. */
+double ler_double(void)
 {
-    listar_decrescente(cabeca, 1, TRACOS_CURTO);
+    char buffer[TAM_ENTRADA];
+    double valor = 0.0;
+
+    if (fgets(buffer, sizeof(buffer), stdin)) {
+        sscanf(buffer, "%lf", &valor);
+    }
+
+    return valor;
 }
 
-/* Opcao 4. */
-void acao_listar_por_proteina(NoCategoria_t *cabeca)
+/* Mostra a linha de total e a linha de tracos que fecham uma listagem. */
+static void exibir_rodape(const char *texto, int total, int tracos)
 {
-    listar_decrescente(cabeca, 0, TRACOS_LONGO);
+    int i;
+
+    printf("Total: %d %s.\n", total, texto);
+    for (i = 0; i < tracos; i++) {
+        putchar('-');
+    }
+    putchar('\n');
 }
 
-/* Opcao 5. */
-void acao_faixa_energia(NoCategoria_t *cabeca)
-{
-    listar_faixa(cabeca, 1, TRACOS_LONGO);
-}
-
-/* Opcao 6. */
-void acao_faixa_proteina(NoCategoria_t *cabeca)
-{
-    listar_faixa(cabeca, 0, TRACOS_CURTO);
-}
-
-/* Opcao 7. Copia o nome antes, porque o no da categoria e liberado. */
+/* Opcao 7: remove a categoria escolhida, guardando o nome antes de liberar o no. */
 int acao_remover_categoria(NoCategoria_t **cabeca)
 {
     int removeu = 0;
@@ -250,7 +253,7 @@ int acao_remover_categoria(NoCategoria_t **cabeca)
     return removeu;
 }
 
-/* Opcao 8. Mostra os alimentos da categoria e pede o numero. */
+/* Opcao 8: mostra os alimentos da categoria e remove o numero digitado. */
 int acao_remover_alimento(NoCategoria_t *cabeca)
 {
     int removeu = 0;
@@ -275,7 +278,7 @@ int acao_remover_alimento(NoCategoria_t *cabeca)
     return removeu;
 }
 
-/* Opcao 9. So regrava o arquivo se alguma coisa foi removida. */
+/* Opcao 9: regrava o arquivo so se algo foi removido e libera toda a memoria. */
 int acao_encerrar(NoCategoria_t **cabeca, int dados_modificados,
                   const char *caminho_bin)
 {

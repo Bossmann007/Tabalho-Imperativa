@@ -2,84 +2,126 @@
 
 #include "arquivo.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* Tamanho maximo de uma linha do CSV. */
 #define TAM_LINHA_BUFFER 512
 
+/* Quantos alimentos cabem no vetor antes do primeiro realloc. */
+#define CAPACIDADE_INICIAL 64
+
+/* Quantos campos cada linha do CSV tem. */
+#define CAMPOS_POR_LINHA 5
+
+static int linha_para_alimento(char *linha, Alimento_t *alimento);
 static void remover_quebra_linha(char *linha);
+static Alimento_t *vetor_aumentar(Alimento_t *vetor, int *capacidade);
 
-/* Le o CSV linha a linha. */
-int arquivo_ler_csv(const char *caminho, Alimento_t *vetor, int capacidade)
+/* Le o CSV linha a linha num vetor que dobra de tamanho quando enche. */
+Alimento_t *arquivo_ler_csv(const char *caminho, int *total)
 {
-    int total_lidos = -1;
+    Alimento_t *vetor = NULL;
     FILE *arquivo = NULL;
+    int total_lidos = -1;
+    int capacidade = CAPACIDADE_INICIAL;
+    char buffer[TAM_LINHA_BUFFER];
+    Alimento_t lido;
 
-    if (caminho && vetor && capacidade > 0) {
+    if (caminho) {
         arquivo = fopen(caminho, "r");
-
-        if (arquivo) {
-            char buffer[TAM_LINHA_BUFFER];
-            int continuar = 1;
-            total_lidos = 0;
-
-            /* A primeira linha e o cabecalho e e descartada. */
-            if (fgets(buffer, sizeof(buffer), arquivo)) {
-                while (continuar && fgets(buffer, sizeof(buffer), arquivo)) {
-                    if (total_lidos < capacidade) {
-                        int numero = 0;
-                        char desc[TAM_MAX_DESCRICAO];
-                        char cat_texto[TAM_MAX_DESCRICAO];
-                        double kcal = 0.0;
-                        double prot = 0.0;
-
-                        remover_quebra_linha(buffer);
-
-                        /* numero;descricao;categoria;energia;proteina
-                         * Na TACO, "NA", "Tr", "*" e campo em branco
-                         * ja foram gravados como 0 no alimentos.csv. */
-                        if (sscanf(buffer, "%d;%127[^;];%127[^;];%lf;%lf",
-                                   &numero, desc, cat_texto,
-                                   &kcal, &prot) == 5) {
-                            Alimento_t *novo = &vetor[total_lidos];
-                            novo->numero = numero;
-                            strncpy(novo->descricao, desc,
-                                    TAM_MAX_DESCRICAO - 1);
-                            novo->descricao[TAM_MAX_DESCRICAO - 1] = '\0';
-                            novo->categoria = categoria_converter(cat_texto);
-                            novo->energia_kcal = kcal;
-                            novo->proteina_g = prot;
-                            total_lidos++;
-                        }
-                    } else {
-                        /* O vetor encheu. */
-                        continuar = 0;
-                    }
-                }
-            }
-
-            fclose(arquivo);
-        }
     }
 
-    return total_lidos;
+    if (arquivo) {
+        vetor = calloc((size_t)capacidade, sizeof(Alimento_t));
+        if (!vetor) {
+            fprintf(stderr, "ERRO FATAL: Memoria insuficiente para ler '%s'.\n",
+                    caminho);
+            exit(EXIT_FAILURE);
+        }
+        total_lidos = 0;
+
+        if (fgets(buffer, sizeof(buffer), arquivo)) {
+            while (fgets(buffer, sizeof(buffer), arquivo)) {
+                if (linha_para_alimento(buffer, &lido)) {
+                    if (total_lidos == capacidade) {
+                        vetor = vetor_aumentar(vetor, &capacidade);
+                    }
+                    vetor[total_lidos] = lido;
+                    total_lidos++;
+                }
+            }
+        }
+
+        fclose(arquivo);
+    }
+
+    if (total) {
+        *total = total_lidos;
+    }
+
+    return vetor;
+}
+
+/* Converte uma linha numero;descricao;categoria;energia;proteina em alimento. */
+static int linha_para_alimento(char *linha, Alimento_t *alimento)
+{
+    int convertido = 0;
+    int numero = 0;
+    char descricao[TAM_MAX_DESCRICAO];
+    char categoria[TAM_MAX_DESCRICAO];
+    double energia = 0.0;
+    double proteina = 0.0;
+
+    remover_quebra_linha(linha);
+
+    /* NA/Tr/branco da TACO gravado como 0 */
+    if (sscanf(linha, "%d;%127[^;];%127[^;];%lf;%lf", &numero, descricao,
+               categoria, &energia, &proteina) == CAMPOS_POR_LINHA) {
+        memset(alimento, 0, sizeof(Alimento_t));
+        alimento->numero = numero;
+        strncpy(alimento->descricao, descricao, TAM_MAX_DESCRICAO - 1);
+        alimento->descricao[TAM_MAX_DESCRICAO - 1] = '\0';
+        alimento->categoria = categoria_converter(categoria);
+        alimento->energia_kcal = energia;
+        alimento->proteina_g = proteina;
+        convertido = 1;
+    }
+
+    return convertido;
 }
 
 /* Tira o '\n' e o '\r' do fim da linha. */
 static void remover_quebra_linha(char *linha)
 {
-    if (linha) {
-        size_t tamanho = strlen(linha);
-        while (tamanho > 0 && (linha[tamanho - 1] == '\n' ||
-                               linha[tamanho - 1] == '\r')) {
-            linha[tamanho - 1] = '\0';
-            tamanho--;
-        }
+    size_t tamanho = strlen(linha);
+
+    while (tamanho > 0 && (linha[tamanho - 1] == '\n' ||
+                           linha[tamanho - 1] == '\r')) {
+        linha[tamanho - 1] = '\0';
+        tamanho--;
     }
 }
 
-/* Grava o vetor inteiro de uma vez com fwrite. Se o fclose falhar,
- * o arquivo pode ter ficado incompleto, entao tambem conta como erro. */
+/* Dobra a capacidade do vetor com realloc e zera a parte nova. */
+static Alimento_t *vetor_aumentar(Alimento_t *vetor, int *capacidade)
+{
+    int nova_capacidade = *capacidade * 2;
+    Alimento_t *novo = realloc(vetor, (size_t)nova_capacidade * sizeof(Alimento_t));
+
+    if (!novo) {
+        free(vetor);
+        fprintf(stderr, "ERRO FATAL: Memoria insuficiente para aumentar o vetor.\n");
+        exit(EXIT_FAILURE);
+    }
+    memset(novo + *capacidade, 0,
+           (size_t)(nova_capacidade - *capacidade) * sizeof(Alimento_t));
+    *capacidade = nova_capacidade;
+
+    return novo;
+}
+
+/* Grava o vetor inteiro com fwrite; fclose com falha tambem conta como erro. */
 int arquivo_gravar_binario(const char *caminho, const Alimento_t *vetor,
                            int quantidade)
 {

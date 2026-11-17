@@ -8,8 +8,7 @@
 /* Valor lido quando a linha nao tem um numero. */
 #define LEITURA_INVALIDA 0
 
-/* Opcoes do menu do P2. A primeira vale 0, entao as validas vao de 1 a 9.
- * OPCAO_ENCERRAR tambem e usada quando a entrada acaba. */
+/* Opcoes do menu do P2; as validas vao de 1 a 9. */
 typedef enum {
     OPCAO_INVALIDA,
     OPCAO_LISTAR_CATEGORIAS,
@@ -23,31 +22,26 @@ typedef enum {
     OPCAO_ENCERRAR
 } OpcaoMenu_e;
 
-/* Mostra o menu principal do P2. */
-void exibir_menu_principal(void);
-
-/* Le uma opcao do menu. Fora de 1 a 9 devolve OPCAO_INVALIDA. */
-OpcaoMenu_e ler_opcao_menu(void);
-
-/* Le uma linha e devolve o inteiro dela (LEITURA_INVALIDA se nao for numero).
- * Se a entrada acabou (EOF), devolve valor_fim_entrada. */
-int ler_inteiro(int valor_fim_entrada);
-
-/* Le uma linha e devolve o numero real dela (0.0 se nao for numero). */
-double ler_double(void);
-
-/* Pede o minimo e o maximo de uma grandeza, por exemplo "energia (kcal)".
- * Se o usuario digitar invertido, troca os dois. */
-void ler_faixa(const char *grandeza, double *min, double *max);
-
-/* Mostra as categorias e pede uma pelo numero.
- * Devolve a categoria escolhida, ou NULL se o numero for invalido. */
-NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
-
 /* Mostra o titulo do P2 e avisa que vai carregar o arquivo. */
 void exibir_abertura(const char *caminho_bin);
 
-/* Acoes do menu: uma funcao para cada opcao. */
+/* Mostra o menu principal do P2. */
+void exibir_menu_principal(void);
+
+/* Le uma opcao do menu; fora de 1 a 9 devolve OPCAO_INVALIDA. */
+OpcaoMenu_e ler_opcao_menu(void);
+
+/* Le uma linha e devolve o inteiro dela; no fim da entrada devolve valor_fim_entrada. */
+int ler_inteiro(int valor_fim_entrada);
+
+/* Mostra as categorias e devolve a escolhida pelo numero, ou NULL. */
+NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
+
+/* Pede o minimo e o maximo de uma grandeza e troca os dois se vierem invertidos. */
+void ler_faixa(const char *grandeza, double *min, double *max);
+
+/* Le uma linha e devolve o numero real dela (0.0 se nao for numero). */
+double ler_double(void);
 
 /* Opcao 2: alimentos de uma categoria em ordem alfabetica. */
 void acao_listar_alimentos(NoCategoria_t *cabeca);
@@ -64,14 +58,13 @@ void acao_faixa_energia(NoCategoria_t *cabeca);
 /* Opcao 6: alimentos com proteina entre um minimo e um maximo. */
 void acao_faixa_proteina(NoCategoria_t *cabeca);
 
-/* Opcao 7: remove uma categoria. Devolve 1 se removeu, senao 0. */
+/* Opcao 7: remove uma categoria; devolve 1 se removeu. */
 int acao_remover_categoria(NoCategoria_t **cabeca);
 
-/* Opcao 8: remove um alimento. Devolve 1 se removeu, senao 0. */
+/* Opcao 8: remove um alimento; devolve 1 se removeu. */
 int acao_remover_alimento(NoCategoria_t *cabeca);
 
-/* Opcao 9: grava o arquivo se houve remocao e libera a memoria.
- * Devolve EXIT_SUCCESS, ou EXIT_FAILURE se nao conseguiu gravar. */
+/* Opcao 9: grava se houve remocao, libera a memoria e devolve o codigo. */
 int acao_encerrar(NoCategoria_t **cabeca, int dados_modificados,
                   const char *caminho_bin);
 

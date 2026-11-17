@@ -6,8 +6,7 @@
 
 #define ARQUIVO_DADOS_BIN "dados.bin"
 
-/* Carrega os dados e repete o menu ate o usuario escolher sair.
- * Cada opcao chama a sua funcao em interface.c. */
+/* Carrega os dados e repete o menu ate o usuario escolher sair. */
 int main(void)
 {
     int codigo_retorno = EXIT_SUCCESS;
@@ -33,32 +32,44 @@ int main(void)
         exibir_menu_principal();
         opcao = ler_opcao_menu();
 
-        if (opcao == OPCAO_LISTAR_CATEGORIAS) {
+        switch (opcao) {
+        case OPCAO_LISTAR_CATEGORIAS:
             lista_exibir_categorias(lista_categorias);
-        } else if (opcao == OPCAO_LISTAR_ALIMENTOS) {
+            break;
+        case OPCAO_LISTAR_ALIMENTOS:
             acao_listar_alimentos(lista_categorias);
-        } else if (opcao == OPCAO_LISTAR_POR_ENERGIA) {
+            break;
+        case OPCAO_LISTAR_POR_ENERGIA:
             acao_listar_por_energia(lista_categorias);
-        } else if (opcao == OPCAO_LISTAR_POR_PROTEINA) {
+            break;
+        case OPCAO_LISTAR_POR_PROTEINA:
             acao_listar_por_proteina(lista_categorias);
-        } else if (opcao == OPCAO_FAIXA_ENERGIA) {
+            break;
+        case OPCAO_FAIXA_ENERGIA:
             acao_faixa_energia(lista_categorias);
-        } else if (opcao == OPCAO_FAIXA_PROTEINA) {
+            break;
+        case OPCAO_FAIXA_PROTEINA:
             acao_faixa_proteina(lista_categorias);
-        } else if (opcao == OPCAO_REMOVER_CATEGORIA) {
-            /* A acao vem antes do || para sempre ser executada. */
-            dados_modificados = acao_remover_categoria(&lista_categorias)
-                                || dados_modificados;
-        } else if (opcao == OPCAO_REMOVER_ALIMENTO) {
-            dados_modificados = acao_remover_alimento(lista_categorias)
-                                || dados_modificados;
-        } else if (opcao == OPCAO_ENCERRAR) {
+            break;
+        case OPCAO_REMOVER_CATEGORIA:
+            if (acao_remover_categoria(&lista_categorias)) {
+                dados_modificados = 1;
+            }
+            break;
+        case OPCAO_REMOVER_ALIMENTO:
+            if (acao_remover_alimento(lista_categorias)) {
+                dados_modificados = 1;
+            }
+            break;
+        case OPCAO_ENCERRAR:
             codigo_retorno = acao_encerrar(&lista_categorias,
                                            dados_modificados,
                                            ARQUIVO_DADOS_BIN);
-        } else {
+            break;
+        default:
             printf("Opcao invalida! Digite um valor entre %d e %d.\n",
                    OPCAO_LISTAR_CATEGORIAS, OPCAO_ENCERRAR);
+            break;
         }
     }
 

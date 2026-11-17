@@ -4,6 +4,17 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Nome mostrado para uma categoria que nao esta na tabela. */
+#define TEXTO_DESCONHECIDA "Desconhecida"
+
+/* Larguras, em letras, das colunas da descricao e da categoria. */
+#define LARGURA_DESCRICAO 45
+#define LARGURA_CATEGORIA 35
+
+/* Em UTF-8, os bytes de continuacao de uma letra tem a forma 10xxxxxx. */
+#define UTF8_MASCARA_CONTINUACAO 0xC0
+#define UTF8_BYTE_CONTINUACAO 0x80
+
 /* Liga o nome de uma categoria ao seu valor no enum. */
 typedef struct {
     const char *texto;
@@ -29,7 +40,7 @@ static const MapeamentoCategoria_t TABELA_CATEGORIAS[TOTAL_CATEGORIAS] = {
     {"Verduras, hortaliças e derivados", CAT_VERDURAS_HORTALICAS_E_DERIVADOS}
 };
 
-/* Procura o nome na tabela e devolve a categoria, ou CAT_INVALIDA. */
+/* Procura o nome na tabela e devolve a categoria. */
 Categoria_e categoria_converter(const char *texto)
 {
     Categoria_e resultado = CAT_INVALIDA;
@@ -48,10 +59,10 @@ Categoria_e categoria_converter(const char *texto)
     return resultado;
 }
 
-/* Procura a categoria na tabela e devolve o nome, ou "Desconhecida". */
+/* Procura a categoria na tabela e devolve o nome. */
 const char *categoria_para_texto(Categoria_e categoria)
 {
-    const char *resultado = "Desconhecida";
+    const char *resultado = TEXTO_DESCONHECIDA;
     int encontrado = 0;
     int i;
 
@@ -69,11 +80,35 @@ const char *categoria_para_texto(Categoria_e categoria)
 void alimento_exibir(const Alimento_t *alimento)
 {
     if (alimento) {
-        printf("[%3d] %-45s | %-35s | %6.1f kcal | %5.1f g prot\n",
-               alimento->numero,
-               alimento->descricao,
-               categoria_para_texto(alimento->categoria),
-               alimento->energia_kcal,
-               alimento->proteina_g);
+        printf("[%3d] ", alimento->numero);
+        imprimir_alinhado(alimento->descricao, LARGURA_DESCRICAO);
+        printf(" | ");
+        imprimir_alinhado(categoria_para_texto(alimento->categoria),
+                          LARGURA_CATEGORIA);
+        printf(" | %6.1f kcal | %5.1f g prot\n",
+               alimento->energia_kcal, alimento->proteina_g);
+    }
+}
+
+/* Conta as letras do texto sem os bytes de continuacao e completa com espacos. */
+void imprimir_alinhado(const char *texto, int largura)
+{
+    int tamanho;
+    int letras = 0;
+    int i;
+
+    if (texto) {
+        tamanho = (int)strlen(texto);
+        for (i = 0; i < tamanho; i++) {
+            if (((unsigned char)texto[i] & UTF8_MASCARA_CONTINUACAO) !=
+                UTF8_BYTE_CONTINUACAO) {
+                letras++;
+            }
+        }
+
+        printf("%s", texto);
+        for (i = 0; i < largura - letras; i++) {
+            putchar(' ');
+        }
     }
 }
