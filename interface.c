@@ -180,42 +180,52 @@ static void listar_faixa(NoCategoria_t *cabeca, int por_energia, int tracos)
             grandeza = "ENERGIA";
             unidade = "KCAL";
         }
-        ler_faixa(pergunta, &min, &max);
-        printf("\n--- ALIMENTOS DE '%s' COM %s ENTRE %.1f E %.1f %s ---\n",
-               cat->nome, grandeza, min, max, unidade);
-        arvore_listar_faixa(arvore, min, max, &cont);
-        exibir_rodape("alimentos encontrados na faixa", cont, tracos);
+        if (ler_faixa(pergunta, &min, &max)) {
+            printf("\n--- ALIMENTOS DE '%s' COM %s ENTRE %.1f E %.1f %s ---\n",
+                   cat->nome, grandeza, min, max, unidade);
+            arvore_listar_faixa(arvore, min, max, &cont);
+            exibir_rodape("alimentos encontrados na faixa", cont, tracos);
+        }
     }
 }
 
-/* Pede minimo e maximo e garante que o minimo nao passa do maximo. */
-void ler_faixa(const char *grandeza, double *min, double *max)
+/* Pede minimo e maximo; devolve 0 se algum valor nao for numero. */
+int ler_faixa(const char *grandeza, double *min, double *max)
 {
+    int valida;
     double troca;
 
     printf("Informe o valor MINIMO de %s: ", grandeza);
-    *min = ler_double();
-    printf("Informe o valor MAXIMO de %s: ", grandeza);
-    *max = ler_double();
+    valida = ler_double(min);
+    if (valida) {
+        printf("Informe o valor MAXIMO de %s: ", grandeza);
+        valida = ler_double(max);
+    }
 
-    if (*min > *max) {
+    if (!valida) {
+        printf("AVISO: Valor invalido! Digite um numero.\n");
+    } else if (*min > *max) {
+        printf("AVISO: O minimo era maior que o maximo; os valores foram trocados.\n");
         troca = *min;
         *min = *max;
         *max = troca;
     }
+
+    return valida;
 }
 
-/* Le a linha com fgets e tira o numero real com sscanf. */
-double ler_double(void)
+/* Le um numero real da linha; devolve 1 se a linha tinha um numero. */
+int ler_double(double *valor)
 {
     char buffer[TAM_ENTRADA];
-    double valor = 0.0;
+    int valido = 0;
 
+    *valor = 0.0;
     if (fgets(buffer, sizeof(buffer), stdin)) {
-        sscanf(buffer, "%lf", &valor);
+        valido = (sscanf(buffer, "%lf", valor) == 1);
     }
 
-    return valor;
+    return valido;
 }
 
 /* Mostra a linha de total e a linha de tracos que fecham uma listagem. */

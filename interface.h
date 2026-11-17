@@ -37,11 +37,11 @@ int ler_inteiro(int valor_fim_entrada);
 /* Mostra as categorias e devolve a escolhida pelo numero, ou NULL. */
 NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
 
-/* Pede o minimo e o maximo de uma grandeza e troca os dois se vierem invertidos. */
-void ler_faixa(const char *grandeza, double *min, double *max);
+/* Pede minimo e maximo; devolve 0 se algum valor nao for numero. */
+int ler_faixa(const char *grandeza, double *min, double *max);
 
-/* Le uma linha e devolve o numero real dela (0.0 se nao for numero). */
-double ler_double(void);
+/* Le um numero real da linha; devolve 1 se a linha tinha um numero. */
+int ler_double(double *valor);
 
 /* Opcao 2: alimentos de uma categoria em ordem alfabetica. */
 void acao_listar_alimentos(NoCategoria_t *cabeca);
