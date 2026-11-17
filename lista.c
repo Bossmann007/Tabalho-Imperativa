@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 /* Largura, em letras, da coluna do nome da categoria. */
 #define LARGURA_NOME_CATEGORIA 40
@@ -168,21 +167,18 @@ NoCategoria_t *lista_obter_categoria_por_indice(NoCategoria_t *cabeca,
 /* Mostra os alimentos na ordem da lista, que ja e alfabetica. */
 void lista_exibir_alimentos_categoria(const NoCategoria_t *categoria)
 {
-    if (categoria) {
-        const NoAlimento_t *atual = categoria->alimentos;
-        int contador = 0;
+    const NoAlimento_t *atual = categoria->alimentos;
+    int contador = 0;
 
-        printf("\n--- ALIMENTOS DA CATEGORIA: %s (Ordem Alfabetica) ---\n",
-               categoria_para_texto(categoria->categoria));
-        while (atual) {
-            contador++;
-            alimento_exibir(&(atual->dado));
-            atual = atual->proximo;
-        }
-        printf("Total de alimentos exibidos: %d.\n"
-               "----------------------------------------------------\n\n",
-               contador);
+    printf("\n--- ALIMENTOS DA CATEGORIA: %s (Ordem Alfabetica) ---\n",
+           categoria_para_texto(categoria->categoria));
+    while (atual) {
+        contador++;
+        alimento_exibir(&(atual->dado));
+        atual = atual->proximo;
     }
+    printf("Total de alimentos exibidos: %d.\n"
+           "----------------------------------------------------\n\n", contador);
 }
 
 /* Tira o alimento da lista, libera o no e monta as arvores de novo. */
@@ -215,18 +211,16 @@ int lista_remover_alimento(NoCategoria_t *categoria, int numero_alimento)
 /* Apaga as duas arvores e insere de novo os alimentos que sobraram. */
 static void categoria_reconstruir_arvores(NoCategoria_t *cat)
 {
-    if (cat) {
-        NoAlimento_t *atual = cat->alimentos;
+    NoAlimento_t *atual = cat->alimentos;
 
-        arvore_liberar(cat->arvore_energia);
-        arvore_liberar(cat->arvore_proteina);
-        cat->arvore_energia = NULL;
-        cat->arvore_proteina = NULL;
+    arvore_liberar(cat->arvore_energia);
+    arvore_liberar(cat->arvore_proteina);
+    cat->arvore_energia = NULL;
+    cat->arvore_proteina = NULL;
 
-        while (atual) {
-            categoria_indexar(cat, atual);
-            atual = atual->proximo;
-        }
+    while (atual) {
+        categoria_indexar(cat, atual);
+        atual = atual->proximo;
     }
 }
 
@@ -289,36 +283,34 @@ int lista_salvar_binario(const NoCategoria_t *cabeca, const char *caminho_bin)
 /* Libera categoria por categoria, guardando a proxima antes do free. */
 void lista_liberar_tudo(NoCategoria_t **cabeca)
 {
-    if (cabeca) {
-        NoCategoria_t *cat_atual = *cabeca;
+    NoCategoria_t *cat_atual = *cabeca;
+    NoCategoria_t *prox_cat;
 
-        while (cat_atual) {
-            NoCategoria_t *prox_cat = cat_atual->proximo;
-            categoria_liberar(cat_atual);
-            cat_atual = prox_cat;
-        }
-
-        *cabeca = NULL;
+    while (cat_atual) {
+        prox_cat = cat_atual->proximo;
+        categoria_liberar(cat_atual);
+        cat_atual = prox_cat;
     }
+
+    *cabeca = NULL;
 }
 
 /* Libera as duas arvores, a lista de alimentos e o no da categoria. */
 static void categoria_liberar(NoCategoria_t *cat)
 {
-    if (cat) {
-        NoAlimento_t *alim_atual = cat->alimentos;
+    NoAlimento_t *alim_atual = cat->alimentos;
+    NoAlimento_t *prox_alim;
 
-        arvore_liberar(cat->arvore_energia);
-        arvore_liberar(cat->arvore_proteina);
+    arvore_liberar(cat->arvore_energia);
+    arvore_liberar(cat->arvore_proteina);
 
-        while (alim_atual) {
-            NoAlimento_t *prox_alim = alim_atual->proximo;
-            free(alim_atual);
-            alim_atual = prox_alim;
-        }
-
-        free(cat);
+    while (alim_atual) {
+        prox_alim = alim_atual->proximo;
+        free(alim_atual);
+        alim_atual = prox_alim;
     }
+
+    free(cat);
 }
 
 /* Compara como o strcmp, mas ignora acento e maiuscula. */

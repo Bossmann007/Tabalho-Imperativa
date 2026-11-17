@@ -9,19 +9,16 @@
 /* Mostra tres alimentos do vetor para conferir a leitura. */
 void exibir_amostras(const Alimento_t *vetor, int quantidade)
 {
-    if (vetor && quantidade > 0) {
-        printf("\n--- AMOSTRA DOS REGISTROS ---\n");
-        printf("Primeiro registro:\n");
-        alimento_exibir(&vetor[0]);
+    printf("\n--- AMOSTRA DOS REGISTROS ---\n");
+    printf("Primeiro registro:\n");
+    alimento_exibir(&vetor[0]);
 
-        if (quantidade > INDICE_AMOSTRA_MEIO) {
-            printf("\nRegistro intermediario (indice %d):\n",
-                   INDICE_AMOSTRA_MEIO);
-            alimento_exibir(&vetor[INDICE_AMOSTRA_MEIO]);
-        }
-
-        printf("\nUltimo registro:\n");
-        alimento_exibir(&vetor[quantidade - 1]);
-        printf("-----------------------------\n\n");
+    if (quantidade > INDICE_AMOSTRA_MEIO) {
+        printf("\nRegistro intermediario (indice %d):\n", INDICE_AMOSTRA_MEIO);
+        alimento_exibir(&vetor[INDICE_AMOSTRA_MEIO]);
     }
+
+    printf("\nUltimo registro:\n");
+    alimento_exibir(&vetor[quantidade - 1]);
+    printf("-----------------------------\n\n");
 }

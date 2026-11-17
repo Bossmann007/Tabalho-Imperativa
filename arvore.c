@@ -38,14 +38,8 @@ void arvore_listar_decrescente(const NoArvore_t *raiz, int *contador)
 {
     if (raiz) {
         arvore_listar_decrescente(raiz->direita, contador);
-
-        if (contador) {
-            (*contador)++;
-        }
-        if (raiz->alimento) {
-            alimento_exibir(&(raiz->alimento->dado));
-        }
-
+        (*contador)++;
+        alimento_exibir(&(raiz->alimento->dado));
         arvore_listar_decrescente(raiz->esquerda, contador);
     }
 }
@@ -60,12 +54,8 @@ void arvore_listar_faixa(const NoArvore_t *raiz, double min, double max,
         }
 
         if (raiz->chave >= min && raiz->chave <= max) {
-            if (contador) {
-                (*contador)++;
-            }
-            if (raiz->alimento) {
-                alimento_exibir(&(raiz->alimento->dado));
-            }
+            (*contador)++;
+            alimento_exibir(&(raiz->alimento->dado));
         }
 
         if (raiz->chave >= min) {

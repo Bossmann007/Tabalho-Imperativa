@@ -61,36 +61,28 @@ const char *categoria_para_texto(Categoria_e categoria)
 /* Mostra numero, descricao, categoria, energia e proteina. */
 void alimento_exibir(const Alimento_t *alimento)
 {
-    if (alimento) {
-        printf("[%3d] ", alimento->numero);
-        imprimir_alinhado(alimento->descricao, LARGURA_DESCRICAO);
-        printf(" | ");
-        imprimir_alinhado(categoria_para_texto(alimento->categoria),
-                          LARGURA_CATEGORIA);
-        printf(" | %6.1f kcal | %5.1f g prot\n",
-               alimento->energia_kcal, alimento->proteina_g);
-    }
+    printf("[%3d] ", alimento->numero);
+    imprimir_alinhado(alimento->descricao, LARGURA_DESCRICAO);
+    printf(" | ");
+    imprimir_alinhado(categoria_para_texto(alimento->categoria), LARGURA_CATEGORIA);
+    printf(" | %6.1f kcal | %5.1f g prot\n", alimento->energia_kcal, alimento->proteina_g);
 }
 
 /* Conta as letras do texto sem os bytes de continuacao e completa com espacos. */
 void imprimir_alinhado(const char *texto, int largura)
 {
-    int tamanho;
+    int tamanho = (int)strlen(texto);
     int letras = 0;
     int i;
 
-    if (texto) {
-        tamanho = (int)strlen(texto);
-        for (i = 0; i < tamanho; i++) {
-            if (((unsigned char)texto[i] & UTF8_MASCARA_CONTINUACAO) !=
-                UTF8_BYTE_CONTINUACAO) {
-                letras++;
-            }
+    for (i = 0; i < tamanho; i++) {
+        if (((unsigned char)texto[i] & UTF8_MASCARA_CONTINUACAO) != UTF8_BYTE_CONTINUACAO) {
+            letras++;
         }
+    }
 
-        printf("%s", texto);
-        for (i = 0; i < largura - letras; i++) {
-            putchar(' ');
-        }
+    printf("%s", texto);
+    for (i = 0; i < largura - letras; i++) {
+        putchar(' ');
     }
 }
