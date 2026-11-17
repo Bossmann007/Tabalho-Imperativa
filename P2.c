@@ -1,6 +1,8 @@
 /* P2.c: carrega dados.bin em listas e arvores e mostra o menu (Etapa C). */
 
+#include "arquivo.h"
 #include "interface.h"
+#include "lista.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,12 +17,16 @@ int main(void)
     int dados_modificados = 0;
     OpcaoMenu_e opcao = OPCAO_INVALIDA;
     NoCategoria_t *lista_categorias;
+    long tamanho_bin;
 
     exibir_abertura(ARQUIVO_DADOS_BIN);
+    tamanho_bin = arquivo_obter_tamanho(ARQUIVO_DADOS_BIN);
     lista_categorias = lista_carregar_de_binario(ARQUIVO_DADOS_BIN,
                                                  &total_carregados);
 
-    if (!lista_categorias || total_carregados == 0) {
+    /* Arquivo com 0 bytes e valido: todas as categorias foram removidas.
+     * Arquivo ausente (-1) ou invalido continua sendo erro. */
+    if (tamanho_bin != 0 && (!lista_categorias || total_carregados == 0)) {
         fprintf(stderr, "ERRO FATAL: Nao foi possivel carregar '%s'. "
                 "Execute o P1 primeiro!\n", ARQUIVO_DADOS_BIN);
         codigo_retorno = EXIT_FAILURE;
@@ -46,12 +52,14 @@ int main(void)
         } else if (opcao == OPCAO_FAIXA_PROTEINA) {
             acao_faixa_proteina(lista_categorias);
         } else if (opcao == OPCAO_REMOVER_CATEGORIA) {
-            /* A acao vem antes do || para sempre ser executada. */
-            dados_modificados = acao_remover_categoria(&lista_categorias)
-                                || dados_modificados;
+            /* Basta uma remocao para o dados.bin ser regravado no fim. */
+            if (acao_remover_categoria(&lista_categorias)) {
+                dados_modificados = 1;
+            }
         } else if (opcao == OPCAO_REMOVER_ALIMENTO) {
-            dados_modificados = acao_remover_alimento(lista_categorias)
-                                || dados_modificados;
+            if (acao_remover_alimento(lista_categorias)) {
+                dados_modificados = 1;
+            }
         } else if (opcao == OPCAO_ENCERRAR) {
             codigo_retorno = acao_encerrar(&lista_categorias,
                                            dados_modificados,
