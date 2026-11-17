@@ -124,7 +124,7 @@ void listar_decrescente(NoCategoria_t *cabeca, int por_energia)
             grandeza = "ENERGIA";
         }
         printf("\n--- ALIMENTOS DE '%s' POR %s DECRESCENTE (ARVORE) ---\n",
-               cat->nome, grandeza);
+               categoria_para_texto(cat->categoria), grandeza);
         arvore_listar_decrescente(arvore, &cont);
         exibir_rodape("alimentos exibidos", cont);
     }
@@ -152,7 +152,7 @@ void listar_faixa(NoCategoria_t *cabeca, int por_energia)
         }
         if (ler_faixa(pergunta, &min, &max)) {
             printf("\n--- ALIMENTOS DE '%s' COM %s ENTRE %.1f E %.1f %s ---\n",
-                   cat->nome, grandeza, min, max, unidade);
+                   categoria_para_texto(cat->categoria), grandeza, min, max, unidade);
             arvore_listar_faixa(arvore, min, max, &cont);
             exibir_rodape("alimentos encontrados na faixa", cont);
         }
@@ -229,7 +229,7 @@ int acao_remover_categoria(NoCategoria_t **cabeca)
 
     if (cat) {
         printf("SUCESSO: Categoria '%s' e todos os seus "
-               "alimentos foram removidos!\n", cat->nome);
+               "alimentos foram removidos!\n", categoria_para_texto(cat->categoria));
         removeu = lista_remover_categoria(cabeca, cat->categoria);
     }
 
@@ -251,7 +251,7 @@ int acao_remover_alimento(NoCategoria_t *cabeca)
         removeu = lista_remover_alimento(cat, num_alimento);
         if (removeu) {
             printf("SUCESSO: Alimento %d removido e arvores de "
-                   "'%s' reconstruidas!\n", num_alimento, cat->nome);
+                   "'%s' reconstruidas!\n", num_alimento, categoria_para_texto(cat->categoria));
         } else {
             printf("AVISO: Alimento com numero %d nao encontrado "
                    "nesta categoria.\n", num_alimento);

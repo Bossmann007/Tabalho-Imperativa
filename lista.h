@@ -15,7 +15,6 @@ typedef struct NoAlimento {
 /* No da lista de categorias: alimentos em ordem alfabetica e as arvores de indice. */
 typedef struct NoCategoria {
     Categoria_e categoria;
-    char nome[TAM_MAX_DESCRICAO];
     NoAlimento_t *alimentos;
     NoArvore_t *arvore_energia;
     NoArvore_t *arvore_proteina;

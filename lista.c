@@ -23,8 +23,7 @@ static const char BASE_ACENTOS[] = "aaaaa..ceeeeiiii..ooooo..uuuu...";
 static void lista_inserir_alimento(NoCategoria_t **cabeca_categorias,
                                    const Alimento_t *alimento);
 static NoCategoria_t *lista_obter_ou_criar_categoria(NoCategoria_t **cabeca,
-                                                     Categoria_e cat,
-                                                     const char *nome);
+                                                     Categoria_e cat);
 static void categoria_indexar(NoCategoria_t *categoria, NoAlimento_t *alimento);
 static void categoria_reconstruir_arvores(NoCategoria_t *cat);
 static void categoria_liberar(NoCategoria_t *cat);
@@ -71,106 +70,64 @@ NoCategoria_t *lista_carregar_de_binario(const char *caminho_bin,
 static void lista_inserir_alimento(NoCategoria_t **cabeca_categorias,
                                    const Alimento_t *alimento)
 {
-    if (cabeca_categorias && alimento) {
-        const char *nome_cat = categoria_para_texto(alimento->categoria);
-        NoCategoria_t *categoria =
-            lista_obter_ou_criar_categoria(cabeca_categorias,
-                                           alimento->categoria, nome_cat);
+    NoCategoria_t *categoria = lista_obter_ou_criar_categoria(cabeca_categorias,
+                                                              alimento->categoria);
+    NoAlimento_t *novo = calloc(1, sizeof(NoAlimento_t));
+    NoAlimento_t *anterior = NULL;
+    NoAlimento_t *atual = categoria->alimentos;
 
-        if (categoria) {
-            NoAlimento_t *novo = calloc(1, sizeof(NoAlimento_t));
-            NoAlimento_t *anterior = NULL;
-            NoAlimento_t *atual = categoria->alimentos;
-            int posicao_encontrada = 0;
-
-            if (!novo) {
-                fprintf(stderr, "ERRO FATAL: Memoria insuficiente para o no "
-                        "do alimento.\n");
-                exit(EXIT_FAILURE);
-            }
-            novo->dado = *alimento;
-            novo->proximo = NULL;
-
-            while (atual && !posicao_encontrada) {
-                if (comparar_texto(novo->dado.descricao,
-                                   atual->dado.descricao) < 0) {
-                    posicao_encontrada = 1;
-                } else {
-                    anterior = atual;
-                    atual = atual->proximo;
-                }
-            }
-
-            if (!anterior) {
-                novo->proximo = categoria->alimentos;
-                categoria->alimentos = novo;
-            } else {
-                novo->proximo = atual;
-                anterior->proximo = novo;
-            }
-
-            categoria->total_alimentos++;
-            categoria_indexar(categoria, novo);
-        }
+    if (!novo) {
+        fprintf(stderr, "ERRO FATAL: Memoria insuficiente para o no do alimento.\n");
+        exit(EXIT_FAILURE);
     }
+    novo->dado = *alimento;
+
+    while (atual && comparar_texto(novo->dado.descricao, atual->dado.descricao) >= 0) {
+        anterior = atual;
+        atual = atual->proximo;
+    }
+
+    novo->proximo = atual;
+    if (!anterior) {
+        categoria->alimentos = novo;
+    } else {
+        anterior->proximo = novo;
+    }
+
+    categoria->total_alimentos++;
+    categoria_indexar(categoria, novo);
 }
 
-/* Devolve a categoria se ja existe; senao cria e coloca em ordem alfabetica. */
+/* Devolve a categoria se ja existe; senao cria e coloca em ordem alfabetica do nome. */
 static NoCategoria_t *lista_obter_ou_criar_categoria(NoCategoria_t **cabeca,
-                                                     Categoria_e cat,
-                                                     const char *nome)
+                                                     Categoria_e cat)
 {
-    NoCategoria_t *resultado = NULL;
+    const char *nome = categoria_para_texto(cat);
+    NoCategoria_t *anterior = NULL;
     NoCategoria_t *atual = *cabeca;
-    int encontrado = 0;
+    NoCategoria_t *resultado = NULL;
 
-    while (atual && !encontrado) {
-        if (atual->categoria == cat) {
-            resultado = atual;
-            encontrado = 1;
-        } else {
-            atual = atual->proximo;
-        }
+    while (atual && atual->categoria != cat &&
+           comparar_texto(nome, categoria_para_texto(atual->categoria)) >= 0) {
+        anterior = atual;
+        atual = atual->proximo;
     }
 
-    if (!encontrado) {
-        NoCategoria_t *novo = calloc(1, sizeof(NoCategoria_t));
-        NoCategoria_t *anterior_cat = NULL;
-        NoCategoria_t *atual_cat = *cabeca;
-        int posicao_encontrada = 0;
-
-        if (!novo) {
-            fprintf(stderr, "ERRO FATAL: Memoria insuficiente para o no "
-                    "da categoria.\n");
+    if (atual && atual->categoria == cat) {
+        resultado = atual;
+    } else {
+        resultado = calloc(1, sizeof(NoCategoria_t));
+        if (!resultado) {
+            fprintf(stderr, "ERRO FATAL: Memoria insuficiente para o no da categoria.\n");
             exit(EXIT_FAILURE);
         }
-        novo->categoria = cat;
-        strncpy(novo->nome, nome, TAM_MAX_DESCRICAO - 1);
-        novo->nome[TAM_MAX_DESCRICAO - 1] = '\0';
-        novo->alimentos = NULL;
-        novo->arvore_energia = NULL;
-        novo->arvore_proteina = NULL;
-        novo->total_alimentos = 0;
-        novo->proximo = NULL;
-
-        while (atual_cat && !posicao_encontrada) {
-            if (comparar_texto(novo->nome, atual_cat->nome) < 0) {
-                posicao_encontrada = 1;
-            } else {
-                anterior_cat = atual_cat;
-                atual_cat = atual_cat->proximo;
-            }
-        }
-
-        if (!anterior_cat) {
-            novo->proximo = *cabeca;
-            *cabeca = novo;
+        resultado->categoria = cat;
+        resultado->proximo = atual;
+        if (!anterior) {
+            *cabeca = resultado;
         } else {
-            novo->proximo = atual_cat;
-            anterior_cat->proximo = novo;
+            anterior->proximo = resultado;
         }
-
-        resultado = novo;
     }
 
     return resultado;
@@ -196,7 +153,7 @@ void lista_exibir_categorias(const NoCategoria_t *cabeca)
     printf("\n=== LISTA DE CATEGORIAS (Ordem Alfabetica) ===\n");
     while (atual) {
         printf("  [%2d] ", indice);
-        imprimir_alinhado(atual->nome, LARGURA_NOME_CATEGORIA);
+        imprimir_alinhado(categoria_para_texto(atual->categoria), LARGURA_NOME_CATEGORIA);
         printf(" (%d %s)\n", atual->total_alimentos,
                atual->total_alimentos == 1 ? "alimento" : "alimentos");
         indice++;
@@ -212,16 +169,14 @@ NoCategoria_t *lista_obter_categoria_por_indice(NoCategoria_t *cabeca,
     NoCategoria_t *resultado = NULL;
     NoCategoria_t *atual = cabeca;
     int posicao = 1;
-    int encontrado = 0;
 
-    while (atual && !encontrado) {
-        if (posicao == indice) {
-            resultado = atual;
-            encontrado = 1;
-        } else {
-            atual = atual->proximo;
-            posicao++;
-        }
+    while (atual && posicao < indice) {
+        atual = atual->proximo;
+        posicao++;
+    }
+
+    if (posicao == indice) {
+        resultado = atual;
     }
 
     return resultado;
@@ -235,7 +190,7 @@ void lista_exibir_alimentos_categoria(const NoCategoria_t *categoria)
         int contador = 0;
 
         printf("\n--- ALIMENTOS DA CATEGORIA: %s (Ordem Alfabetica) ---\n",
-               categoria->nome);
+               categoria_para_texto(categoria->categoria));
         while (atual) {
             contador++;
             alimento_exibir(&(atual->dado));
@@ -251,33 +206,24 @@ void lista_exibir_alimentos_categoria(const NoCategoria_t *categoria)
 int lista_remover_alimento(NoCategoria_t *categoria, int numero_alimento)
 {
     int removido = 0;
+    NoAlimento_t *anterior = NULL;
+    NoAlimento_t *atual = categoria->alimentos;
 
-    if (categoria && categoria->alimentos) {
-        NoAlimento_t *anterior = NULL;
-        NoAlimento_t *atual = categoria->alimentos;
-        int encontrado = 0;
+    while (atual && atual->dado.numero != numero_alimento) {
+        anterior = atual;
+        atual = atual->proximo;
+    }
 
-        while (atual && !encontrado) {
-            if (atual->dado.numero == numero_alimento) {
-                encontrado = 1;
-            } else {
-                anterior = atual;
-                atual = atual->proximo;
-            }
+    if (atual) {
+        if (!anterior) {
+            categoria->alimentos = atual->proximo;
+        } else {
+            anterior->proximo = atual->proximo;
         }
-
-        if (encontrado && atual) {
-            if (!anterior) {
-                categoria->alimentos = atual->proximo;
-            } else {
-                anterior->proximo = atual->proximo;
-            }
-
-            free(atual);
-            categoria->total_alimentos--;
-            categoria_reconstruir_arvores(categoria);
-            removido = 1;
-        }
+        free(atual);
+        categoria->total_alimentos--;
+        categoria_reconstruir_arvores(categoria);
+        removido = 1;
     }
 
     return removido;
@@ -306,31 +252,22 @@ int lista_remover_categoria(NoCategoria_t **cabeca_categorias,
                             Categoria_e cat)
 {
     int removido = 0;
+    NoCategoria_t *anterior = NULL;
+    NoCategoria_t *atual = *cabeca_categorias;
 
-    if (cabeca_categorias && *cabeca_categorias) {
-        NoCategoria_t *anterior = NULL;
-        NoCategoria_t *atual = *cabeca_categorias;
-        int encontrado = 0;
+    while (atual && atual->categoria != cat) {
+        anterior = atual;
+        atual = atual->proximo;
+    }
 
-        while (atual && !encontrado) {
-            if (atual->categoria == cat) {
-                encontrado = 1;
-            } else {
-                anterior = atual;
-                atual = atual->proximo;
-            }
+    if (atual) {
+        if (!anterior) {
+            *cabeca_categorias = atual->proximo;
+        } else {
+            anterior->proximo = atual->proximo;
         }
-
-        if (encontrado && atual) {
-            if (!anterior) {
-                *cabeca_categorias = atual->proximo;
-            } else {
-                anterior->proximo = atual->proximo;
-            }
-
-            categoria_liberar(atual);
-            removido = 1;
-        }
+        categoria_liberar(atual);
+        removido = 1;
     }
 
     return removido;
