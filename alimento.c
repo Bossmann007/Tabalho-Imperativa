@@ -9,7 +9,7 @@
 
 /* Larguras, em letras, das colunas da descricao e da categoria. */
 #define LARGURA_DESCRICAO 45
-#define LARGURA_CATEGORIA 35
+#define LARGURA_CATEGORIA 37
 
 /* Em UTF-8, os bytes de continuacao de uma letra tem a forma 10xxxxxx. */
 #define UTF8_MASCARA_CONTINUACAO 0xC0
