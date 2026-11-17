@@ -13,7 +13,7 @@
 
 static int ler_inteiro(int valor_fim_entrada);
 static int ler_double(double *valor);
-static void descartar_resto_linha(const char *buffer);
+static int ler_linha(char *buffer);
 static int ler_faixa(const char *grandeza, double *min, double *max);
 static NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
 static void exibir_rodape(const char *texto, int total);
@@ -67,17 +67,15 @@ OpcaoMenu_e ler_opcao_menu(void)
     return opcao;
 }
 
-/* Le a linha com fgets e tira o inteiro com sscanf. */
+/* Le uma linha e tira o inteiro com sscanf; no fim da entrada devolve valor_fim_entrada. */
 static int ler_inteiro(int valor_fim_entrada)
 {
     char buffer[TAM_ENTRADA];
-    int valor = LEITURA_INVALIDA;
+    int valor = valor_fim_entrada;
 
-    if (fgets(buffer, sizeof(buffer), stdin)) {
-        descartar_resto_linha(buffer);
+    if (ler_linha(buffer)) {
+        valor = LEITURA_INVALIDA;
         sscanf(buffer, "%d", &valor);
-    } else {
-        valor = valor_fim_entrada;
     }
 
     return valor;
@@ -193,25 +191,27 @@ static int ler_double(double *valor)
     int valido = 0;
 
     *valor = 0.0;
-    if (fgets(buffer, sizeof(buffer), stdin)) {
-        descartar_resto_linha(buffer);
+    if (ler_linha(buffer)) {
         valido = (sscanf(buffer, "%lf", valor) == 1);
     }
 
     return valido;
 }
 
-/* Joga fora o que sobrou de uma linha maior que o buffer. */
-static void descartar_resto_linha(const char *buffer)
+/* Le uma linha com fgets e joga fora o que passar do buffer; devolve 0 no fim da entrada. */
+static int ler_linha(char *buffer)
 {
+    int leu = (fgets(buffer, TAM_ENTRADA, stdin) != NULL);
     int caractere = 0;
 
-    if (strchr(buffer, '\n') == NULL) {
+    if (leu && strchr(buffer, '\n') == NULL) {
         caractere = getchar();
         while (caractere != '\n' && caractere != EOF) {
             caractere = getchar();
         }
     }
+
+    return leu;
 }
 
 /* Mostra a linha de total e a linha de tracos que fecham uma listagem. */
@@ -221,24 +221,16 @@ static void exibir_rodape(const char *texto, int total)
     printf("------------------------------------------------------------\n");
 }
 
-/* Opcao 7: remove a categoria escolhida, guardando o nome antes de liberar o no. */
+/* Opcao 7: avisa e remove a categoria escolhida com todos os seus alimentos. */
 int acao_remover_categoria(NoCategoria_t **cabeca)
 {
     int removeu = 0;
     NoCategoria_t *cat = selecionar_categoria(*cabeca);
 
     if (cat) {
-        char nome_cat[TAM_MAX_DESCRICAO];
-
-        strncpy(nome_cat, cat->nome, sizeof(nome_cat) - 1);
-        nome_cat[sizeof(nome_cat) - 1] = '\0';
+        printf("SUCESSO: Categoria '%s' e todos os seus "
+               "alimentos foram removidos!\n", cat->nome);
         removeu = lista_remover_categoria(cabeca, cat->categoria);
-        if (removeu) {
-            printf("SUCESSO: Categoria '%s' e todos os seus "
-                   "alimentos foram removidos!\n", nome_cat);
-        } else {
-            printf("ERRO: Falha ao remover categoria.\n");
-        }
     }
 
     return removeu;
