@@ -1,4 +1,5 @@
 /* P1.c: le alimentos.csv, grava dados.bin e confere o arquivo gravado. */
+/* Etapa B do trabalho. Cada passo so roda se o anterior deu certo. */
 
 #include "alimento.h"
 #include "arquivo.h"
@@ -13,6 +14,7 @@
 #define ARQUIVO_BIN "dados.bin"
 
 /* Converte o CSV em binario e confere o arquivo gravado (Etapa B). */
+/* Devolve EXIT_SUCCESS se os 3 passos deram certo, senao EXIT_FAILURE. */
 int main(void)
 {
     Alimento_t *vetor_lido = NULL;
@@ -29,6 +31,7 @@ int main(void)
     printf("   Programa P1: Conversao CSV -> Binario (Etapa B)   \n");
     printf("=====================================================\n\n");
 
+    /* Passo 1: le o CSV para um vetor dinamico (calloc no inicio, realloc quando enche). */
     printf("[1/3] Lendo arquivo CSV: '%s'...\n", ARQUIVO_CSV);
     vetor_lido = arquivo_ler_csv(ARQUIVO_CSV, &total_lidos);
     if (total_lidos <= 0) {
@@ -38,12 +41,14 @@ int main(void)
     } else {
         printf("SUCESSO: %d registros lidos com sucesso do CSV!\n",
                total_lidos);
+        /* Um total diferente de 597 nao impede o resto: so avisa. */
         if (total_lidos != ESPERADO_REGISTROS) {
             printf("AVISO: a tabela TACO tem %d alimentos e o CSV tem %d.\n",
                    ESPERADO_REGISTROS, total_lidos);
         }
     }
 
+    /* Passo 2: grava o vetor inteiro no dados.bin. */
     if (codigo_retorno == EXIT_SUCCESS) {
         printf("\n[2/3] Gravando em formato binario: '%s'...\n", ARQUIVO_BIN);
         total_gravados = arquivo_gravar_binario(ARQUIVO_BIN, vetor_lido,
@@ -58,6 +63,8 @@ int main(void)
         }
     }
 
+    /* Passo 3a: confere o tamanho. Com registros de tamanho fixo, o arquivo tem que ter */
+    /* exatamente total x sizeof(Alimento_t) bytes; outro tamanho quer dizer gravacao incompleta. */
     if (codigo_retorno == EXIT_SUCCESS) {
         printf("\n[3/3] Conferindo integridade de '%s'...\n", ARQUIVO_BIN);
         tamanho_bytes = arquivo_obter_tamanho(ARQUIVO_BIN);
@@ -73,6 +80,7 @@ int main(void)
         }
     }
 
+    /* Passo 3b: le o binario de volta num segundo vetor e mostra uma amostra. */
     if (codigo_retorno == EXIT_SUCCESS) {
         vetor_conferencia = calloc((size_t)total_lidos, sizeof(Alimento_t));
         if (!vetor_conferencia) {
@@ -95,6 +103,7 @@ int main(void)
         }
     }
 
+    /* Libera os dois vetores em qualquer caso (free(NULL) nao faz nada). */
     free(vetor_conferencia);
     free(vetor_lido);
 
