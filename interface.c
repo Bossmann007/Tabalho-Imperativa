@@ -11,20 +11,11 @@
 /* Valor lido quando a linha nao tem um numero. */
 #define LEITURA_INVALIDA 0
 
-/* Tamanho da linha de tracos no fim das listagens por arvore. */
-#define TAM_TRACOS 60
-
-/* Qual arvore as listagens usam. */
-#define POR_PROTEINA 0
-#define POR_ENERGIA 1
-
 static int ler_inteiro(int valor_fim_entrada);
 static int ler_double(double *valor);
 static void descartar_resto_linha(const char *buffer);
 static int ler_faixa(const char *grandeza, double *min, double *max);
 static NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
-static void listar_decrescente(NoCategoria_t *cabeca, int por_energia);
-static void listar_faixa(NoCategoria_t *cabeca, int por_energia);
 static void exibir_rodape(const char *texto, int total);
 
 /* Mostra o titulo do P2 e o arquivo que sera carregado. */
@@ -120,32 +111,8 @@ static NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca)
     return selecionada;
 }
 
-/* Opcao 3: lista por energia decrescente. */
-void acao_listar_por_energia(NoCategoria_t *cabeca)
-{
-    listar_decrescente(cabeca, POR_ENERGIA);
-}
-
-/* Opcao 4: lista por proteina decrescente. */
-void acao_listar_por_proteina(NoCategoria_t *cabeca)
-{
-    listar_decrescente(cabeca, POR_PROTEINA);
-}
-
-/* Opcao 5: filtra por faixa de energia. */
-void acao_faixa_energia(NoCategoria_t *cabeca)
-{
-    listar_faixa(cabeca, POR_ENERGIA);
-}
-
-/* Opcao 6: filtra por faixa de proteina. */
-void acao_faixa_proteina(NoCategoria_t *cabeca)
-{
-    listar_faixa(cabeca, POR_PROTEINA);
-}
-
 /* Lista uma categoria pela arvore de energia ou de proteina, da maior para a menor. */
-static void listar_decrescente(NoCategoria_t *cabeca, int por_energia)
+void listar_decrescente(NoCategoria_t *cabeca, int por_energia)
 {
     NoCategoria_t *cat = selecionar_categoria(cabeca);
 
@@ -166,7 +133,7 @@ static void listar_decrescente(NoCategoria_t *cabeca, int por_energia)
 }
 
 /* Le a faixa e lista a categoria pela arvore de energia ou de proteina. */
-static void listar_faixa(NoCategoria_t *cabeca, int por_energia)
+void listar_faixa(NoCategoria_t *cabeca, int por_energia)
 {
     NoCategoria_t *cat = selecionar_categoria(cabeca);
 
@@ -250,13 +217,8 @@ static void descartar_resto_linha(const char *buffer)
 /* Mostra a linha de total e a linha de tracos que fecham uma listagem. */
 static void exibir_rodape(const char *texto, int total)
 {
-    int i;
-
     printf("Total de %s: %d.\n", texto, total);
-    for (i = 0; i < TAM_TRACOS; i++) {
-        putchar('-');
-    }
-    putchar('\n');
+    printf("------------------------------------------------------------\n");
 }
 
 /* Opcao 7: remove a categoria escolhida, guardando o nome antes de liberar o no. */

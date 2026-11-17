@@ -44,14 +44,10 @@ int main(void)
             lista_exibir_categorias(lista_categorias);
         } else if (opcao == OPCAO_LISTAR_ALIMENTOS) {
             acao_listar_alimentos(lista_categorias);
-        } else if (opcao == OPCAO_LISTAR_POR_ENERGIA) {
-            acao_listar_por_energia(lista_categorias);
-        } else if (opcao == OPCAO_LISTAR_POR_PROTEINA) {
-            acao_listar_por_proteina(lista_categorias);
-        } else if (opcao == OPCAO_FAIXA_ENERGIA) {
-            acao_faixa_energia(lista_categorias);
-        } else if (opcao == OPCAO_FAIXA_PROTEINA) {
-            acao_faixa_proteina(lista_categorias);
+        } else if (opcao == OPCAO_LISTAR_POR_ENERGIA || opcao == OPCAO_LISTAR_POR_PROTEINA) {
+            listar_decrescente(lista_categorias, opcao == OPCAO_LISTAR_POR_ENERGIA);
+        } else if (opcao == OPCAO_FAIXA_ENERGIA || opcao == OPCAO_FAIXA_PROTEINA) {
+            listar_faixa(lista_categorias, opcao == OPCAO_FAIXA_ENERGIA);
         } else if (opcao == OPCAO_REMOVER_CATEGORIA) {
             if (acao_remover_categoria(&lista_categorias)) {
                 dados_modificados = 1;

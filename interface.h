@@ -31,17 +31,11 @@ OpcaoMenu_e ler_opcao_menu(void);
 /* Opcao 2: alimentos de uma categoria em ordem alfabetica. */
 void acao_listar_alimentos(NoCategoria_t *cabeca);
 
-/* Opcao 3: alimentos de uma categoria por energia decrescente. */
-void acao_listar_por_energia(NoCategoria_t *cabeca);
+/* Opcoes 3 e 4: lista uma categoria por energia ou proteina decrescente. */
+void listar_decrescente(NoCategoria_t *cabeca, int por_energia);
 
-/* Opcao 4: alimentos de uma categoria por proteina decrescente. */
-void acao_listar_por_proteina(NoCategoria_t *cabeca);
-
-/* Opcao 5: alimentos com energia entre um minimo e um maximo. */
-void acao_faixa_energia(NoCategoria_t *cabeca);
-
-/* Opcao 6: alimentos com proteina entre um minimo e um maximo. */
-void acao_faixa_proteina(NoCategoria_t *cabeca);
+/* Opcoes 5 e 6: lista os alimentos de uma categoria numa faixa de energia ou proteina. */
+void listar_faixa(NoCategoria_t *cabeca, int por_energia);
 
 /* Opcao 7: remove uma categoria; devolve 1 se removeu. */
 int acao_remover_categoria(NoCategoria_t **cabeca);
