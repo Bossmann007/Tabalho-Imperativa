@@ -1,5 +1,5 @@
 /* arquivo.c: leitura do CSV e leitura/gravacao do arquivo binario. */
-/* O P1 usa todas as funcoes daqui; o P2 usa a leitura do binario e o tamanho do arquivo. */
+/* O P1 usa todas as funcoes daqui; o P2 usa a leitura, a gravacao e o tamanho do arquivo binario. */
 
 #include "arquivo.h"
 #include <stdio.h>
