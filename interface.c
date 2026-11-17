@@ -8,19 +8,24 @@
 /* Tamanho maximo de uma linha digitada pelo usuario. */
 #define TAM_ENTRADA 64
 
-/* Tamanhos da linha de tracos no fim das listagens por arvore. */
-#define TRACOS_CURTO 59
-#define TRACOS_LONGO 60
+/* Valor lido quando a linha nao tem um numero. */
+#define LEITURA_INVALIDA 0
+
+/* Tamanho da linha de tracos no fim das listagens por arvore. */
+#define TAM_TRACOS 60
 
 /* Qual arvore as listagens usam. */
 #define POR_PROTEINA 0
 #define POR_ENERGIA 1
 
-static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
-                               int tracos);
-static void listar_faixa(NoCategoria_t *cabeca, int por_energia,
-                         int tracos);
-static void exibir_rodape(const char *texto, int total, int tracos);
+static int ler_inteiro(int valor_fim_entrada);
+static int ler_double(double *valor);
+static void descartar_resto_linha(const char *buffer);
+static int ler_faixa(const char *grandeza, double *min, double *max);
+static NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
+static void listar_decrescente(NoCategoria_t *cabeca, int por_energia);
+static void listar_faixa(NoCategoria_t *cabeca, int por_energia);
+static void exibir_rodape(const char *texto, int total);
 
 /* Mostra o titulo do P2 e o arquivo que sera carregado. */
 void exibir_abertura(const char *caminho_bin)
@@ -72,12 +77,13 @@ OpcaoMenu_e ler_opcao_menu(void)
 }
 
 /* Le a linha com fgets e tira o inteiro com sscanf. */
-int ler_inteiro(int valor_fim_entrada)
+static int ler_inteiro(int valor_fim_entrada)
 {
     char buffer[TAM_ENTRADA];
     int valor = LEITURA_INVALIDA;
 
     if (fgets(buffer, sizeof(buffer), stdin)) {
+        descartar_resto_linha(buffer);
         sscanf(buffer, "%d", &valor);
     } else {
         valor = valor_fim_entrada;
@@ -97,7 +103,7 @@ void acao_listar_alimentos(NoCategoria_t *cabeca)
 }
 
 /* Mostra a lista de categorias e le o numero escolhido. */
-NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca)
+static NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca)
 {
     NoCategoria_t *selecionada = NULL;
     int indice;
@@ -117,30 +123,29 @@ NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca)
 /* Opcao 3: lista por energia decrescente. */
 void acao_listar_por_energia(NoCategoria_t *cabeca)
 {
-    listar_decrescente(cabeca, POR_ENERGIA, TRACOS_CURTO);
+    listar_decrescente(cabeca, POR_ENERGIA);
 }
 
 /* Opcao 4: lista por proteina decrescente. */
 void acao_listar_por_proteina(NoCategoria_t *cabeca)
 {
-    listar_decrescente(cabeca, POR_PROTEINA, TRACOS_LONGO);
+    listar_decrescente(cabeca, POR_PROTEINA);
 }
 
 /* Opcao 5: filtra por faixa de energia. */
 void acao_faixa_energia(NoCategoria_t *cabeca)
 {
-    listar_faixa(cabeca, POR_ENERGIA, TRACOS_LONGO);
+    listar_faixa(cabeca, POR_ENERGIA);
 }
 
 /* Opcao 6: filtra por faixa de proteina. */
 void acao_faixa_proteina(NoCategoria_t *cabeca)
 {
-    listar_faixa(cabeca, POR_PROTEINA, TRACOS_CURTO);
+    listar_faixa(cabeca, POR_PROTEINA);
 }
 
 /* Lista uma categoria pela arvore de energia ou de proteina, da maior para a menor. */
-static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
-                               int tracos)
+static void listar_decrescente(NoCategoria_t *cabeca, int por_energia)
 {
     NoCategoria_t *cat = selecionar_categoria(cabeca);
 
@@ -156,12 +161,12 @@ static void listar_decrescente(NoCategoria_t *cabeca, int por_energia,
         printf("\n--- ALIMENTOS DE '%s' POR %s DECRESCENTE (ARVORE) ---\n",
                cat->nome, grandeza);
         arvore_listar_decrescente(arvore, &cont);
-        exibir_rodape("alimentos exibidos", cont, tracos);
+        exibir_rodape("alimentos exibidos", cont);
     }
 }
 
 /* Le a faixa e lista a categoria pela arvore de energia ou de proteina. */
-static void listar_faixa(NoCategoria_t *cabeca, int por_energia, int tracos)
+static void listar_faixa(NoCategoria_t *cabeca, int por_energia)
 {
     NoCategoria_t *cat = selecionar_categoria(cabeca);
 
@@ -184,13 +189,13 @@ static void listar_faixa(NoCategoria_t *cabeca, int por_energia, int tracos)
             printf("\n--- ALIMENTOS DE '%s' COM %s ENTRE %.1f E %.1f %s ---\n",
                    cat->nome, grandeza, min, max, unidade);
             arvore_listar_faixa(arvore, min, max, &cont);
-            exibir_rodape("alimentos encontrados na faixa", cont, tracos);
+            exibir_rodape("alimentos encontrados na faixa", cont);
         }
     }
 }
 
 /* Pede minimo e maximo; devolve 0 se algum valor nao for numero. */
-int ler_faixa(const char *grandeza, double *min, double *max)
+static int ler_faixa(const char *grandeza, double *min, double *max)
 {
     int valida;
     double troca;
@@ -215,26 +220,40 @@ int ler_faixa(const char *grandeza, double *min, double *max)
 }
 
 /* Le um numero real da linha; devolve 1 se a linha tinha um numero. */
-int ler_double(double *valor)
+static int ler_double(double *valor)
 {
     char buffer[TAM_ENTRADA];
     int valido = 0;
 
     *valor = 0.0;
     if (fgets(buffer, sizeof(buffer), stdin)) {
+        descartar_resto_linha(buffer);
         valido = (sscanf(buffer, "%lf", valor) == 1);
     }
 
     return valido;
 }
 
+/* Joga fora o que sobrou de uma linha maior que o buffer. */
+static void descartar_resto_linha(const char *buffer)
+{
+    int caractere = 0;
+
+    if (strchr(buffer, '\n') == NULL) {
+        caractere = getchar();
+        while (caractere != '\n' && caractere != EOF) {
+            caractere = getchar();
+        }
+    }
+}
+
 /* Mostra a linha de total e a linha de tracos que fecham uma listagem. */
-static void exibir_rodape(const char *texto, int total, int tracos)
+static void exibir_rodape(const char *texto, int total)
 {
     int i;
 
-    printf("Total: %d %s.\n", total, texto);
-    for (i = 0; i < tracos; i++) {
+    printf("Total de %s: %d.\n", texto, total);
+    for (i = 0; i < TAM_TRACOS; i++) {
         putchar('-');
     }
     putchar('\n');

@@ -197,7 +197,8 @@ void lista_exibir_categorias(const NoCategoria_t *cabeca)
     while (atual) {
         printf("  [%2d] ", indice);
         imprimir_alinhado(atual->nome, LARGURA_NOME_CATEGORIA);
-        printf(" (%d alimentos)\n", atual->total_alimentos);
+        printf(" (%d %s)\n", atual->total_alimentos,
+               atual->total_alimentos == 1 ? "alimento" : "alimentos");
         indice++;
         atual = atual->proximo;
     }
@@ -240,7 +241,7 @@ void lista_exibir_alimentos_categoria(const NoCategoria_t *categoria)
             alimento_exibir(&(atual->dado));
             atual = atual->proximo;
         }
-        printf("Total: %d alimentos exibidos.\n"
+        printf("Total de alimentos exibidos: %d.\n"
                "----------------------------------------------------\n\n",
                contador);
     }

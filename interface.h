@@ -5,9 +5,6 @@
 
 #include "lista.h"
 
-/* Valor lido quando a linha nao tem um numero. */
-#define LEITURA_INVALIDA 0
-
 /* Opcoes do menu do P2; as validas vao de 1 a 9. */
 typedef enum {
     OPCAO_INVALIDA,
@@ -30,18 +27,6 @@ void exibir_menu_principal(void);
 
 /* Le uma opcao do menu; fora de 1 a 9 devolve OPCAO_INVALIDA. */
 OpcaoMenu_e ler_opcao_menu(void);
-
-/* Le uma linha e devolve o inteiro dela; no fim da entrada devolve valor_fim_entrada. */
-int ler_inteiro(int valor_fim_entrada);
-
-/* Mostra as categorias e devolve a escolhida pelo numero, ou NULL. */
-NoCategoria_t *selecionar_categoria(NoCategoria_t *cabeca);
-
-/* Pede minimo e maximo; devolve 0 se algum valor nao for numero. */
-int ler_faixa(const char *grandeza, double *min, double *max);
-
-/* Le um numero real da linha; devolve 1 se a linha tinha um numero. */
-int ler_double(double *valor);
 
 /* Opcao 2: alimentos de uma categoria em ordem alfabetica. */
 void acao_listar_alimentos(NoCategoria_t *cabeca);
