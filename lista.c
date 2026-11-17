@@ -1,6 +1,7 @@
 /* lista.c: listas ligadas de categorias e de alimentos. */
 
 #include "lista.h"
+#include "arquivo.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,21 +29,37 @@ static void categoria_liberar(NoCategoria_t *cat);
 static int comparar_texto(const char *a, const char *b);
 static int letra_base(const char **texto);
 
-/* Le dados.bin registro por registro com fread e insere cada alimento. */
+/* Le dados.bin inteiro para um vetor e insere alimento por alimento. */
 NoCategoria_t *lista_carregar_de_binario(const char *caminho_bin,
                                          int *total_lidos)
 {
     NoCategoria_t *cabeca = NULL;
-    Alimento_t lido;
-    FILE *arquivo = fopen(caminho_bin, "rb");
+    int contador = 0;
+    long tamanho = arquivo_obter_tamanho(caminho_bin);
 
-    *total_lidos = 0;
-    if (arquivo) {
-        while (fread(&lido, sizeof(Alimento_t), 1, arquivo) == 1) {
-            lista_inserir_alimento(&cabeca, &lido);
-            (*total_lidos)++;
+    if (tamanho >= (long)sizeof(Alimento_t)) {
+        int capacidade = (int)(tamanho / (long)sizeof(Alimento_t));
+        Alimento_t *vetor = malloc((size_t)capacidade * sizeof(Alimento_t));
+        int lidos;
+        int i;
+
+        if (!vetor) {
+            fprintf(stderr, "ERRO FATAL: Memoria insuficiente para ler '%s'.\n",
+                    caminho_bin);
+            exit(EXIT_FAILURE);
         }
-        fclose(arquivo);
+
+        lidos = arquivo_ler_binario(caminho_bin, vetor, capacidade);
+        for (i = 0; i < lidos; i++) {
+            lista_inserir_alimento(&cabeca, &vetor[i]);
+            contador++;
+        }
+
+        free(vetor);
+    }
+
+    if (total_lidos) {
+        *total_lidos = contador;
     }
 
     return cabeca;
@@ -250,34 +267,49 @@ int lista_remover_categoria(NoCategoria_t **cabeca_categorias,
     return removido;
 }
 
-/* Grava com fwrite cada alimento de cada categoria; devolve quantos gravou (-1 se deu erro). */
+/* Copia os alimentos de todas as categorias para um vetor e grava o vetor. */
 int lista_salvar_binario(const NoCategoria_t *cabeca, const char *caminho_bin)
 {
-    int gravados = -1;
+    int quantidade = 0;
+    int total_gravados;
+    int i = 0;
     const NoCategoria_t *cat = cabeca;
     const NoAlimento_t *alim;
-    FILE *arquivo = fopen(caminho_bin, "wb");
+    Alimento_t *vetor = NULL;
 
-    if (arquivo) {
-        gravados = 0;
-        while (cat && gravados >= 0) {
+    while (cat) {
+        quantidade += cat->total_alimentos;
+        cat = cat->proximo;
+    }
+
+    if (quantidade > 0) {
+        vetor = calloc((size_t)quantidade, sizeof(Alimento_t));
+        if (!vetor) {
+            fprintf(stderr,
+                    "ERRO FATAL: Memoria insuficiente para gravar '%s'.\n",
+                    caminho_bin);
+            exit(EXIT_FAILURE);
+        }
+
+        cat = cabeca;
+        while (cat) {
             alim = cat->alimentos;
-            while (alim && gravados >= 0) {
-                if (fwrite(&alim->dado, sizeof(Alimento_t), 1, arquivo) == 1) {
-                    gravados++;
-                } else {
-                    gravados = -1;
-                }
+            while (alim) {
+                vetor[i] = alim->dado;
+                i++;
                 alim = alim->proximo;
             }
             cat = cat->proximo;
         }
-        if (fclose(arquivo) == EOF) {
-            gravados = -1;
-        }
     }
 
-    return gravados;
+    total_gravados = arquivo_gravar_binario(caminho_bin, vetor, quantidade);
+    if (total_gravados != quantidade) {
+        total_gravados = -1;
+    }
+    free(vetor);
+
+    return total_gravados;
 }
 
 /* Libera categoria por categoria, guardando a proxima antes do free. */
