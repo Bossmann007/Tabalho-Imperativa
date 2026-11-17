@@ -9,11 +9,7 @@
 /* Numero de categorias da tabela TACO. */
 #define TOTAL_CATEGORIAS 15
 
-/*
- * Categorias da tabela, em ordem alfabetica.
- * CAT_INVALIDA fica por ultimo e marca um texto de categoria que nao foi
- * reconhecido; o compilador escolhe o valor.
- */
+/* Categorias em ordem alfabetica; CAT_INVALIDA marca um nome nao reconhecido. */
 typedef enum {
     CAT_ALIMENTOS_PREPARADOS,
     CAT_BEBIDAS,
@@ -33,10 +29,7 @@ typedef enum {
     CAT_INVALIDA
 } Categoria_e;
 
-/*
- * Um alimento da tabela. A descricao tem tamanho fixo para que cada
- * registro ocupe sempre o mesmo numero de bytes no arquivo binario.
- */
+/* Um alimento da tabela; a descricao tem tamanho fixo para o registro binario. */
 typedef struct {
     int numero;
     char descricao[TAM_MAX_DESCRICAO];
@@ -45,14 +38,16 @@ typedef struct {
     double proteina_g;
 } Alimento_t;
 
-/* Converte o nome da categoria (como esta no CSV) para o enum.
- * Devolve CAT_INVALIDA se o nome nao existir. */
+/* Converte o nome da categoria do CSV para o enum. */
 Categoria_e categoria_converter(const char *texto);
 
-/* Devolve o nome da categoria, ou "Desconhecida". */
+/* Devolve o nome da categoria. */
 const char *categoria_para_texto(Categoria_e categoria);
 
 /* Mostra os dados de um alimento em uma linha. */
 void alimento_exibir(const Alimento_t *alimento);
+
+/* Mostra um texto e completa com espacos ate a largura em letras. */
+void imprimir_alinhado(const char *texto, int largura);
 
 #endif /* ALIMENTO_H */

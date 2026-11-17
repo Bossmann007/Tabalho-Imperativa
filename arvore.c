@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* Insere de forma recursiva: chave menor vai para a esquerda,
- * maior ou igual vai para a direita. Devolve a raiz da subarvore. */
+/* Insere a chave na arvore de forma recursiva e devolve a raiz da subarvore. */
 NoArvore_t *arvore_inserir(NoArvore_t *raiz, double chave,
                            struct NoAlimento *alimento)
 {
@@ -27,53 +26,38 @@ NoArvore_t *arvore_inserir(NoArvore_t *raiz, double chave,
     } else if (chave < raiz->chave) {
         raiz->esquerda = arvore_inserir(raiz->esquerda, chave, alimento);
     } else {
+        /* chave igual vai para a direita (>=) */
         raiz->direita = arvore_inserir(raiz->direita, chave, alimento);
     }
 
     return resultado;
 }
 
-/* Percorre direita, raiz, esquerda: assim as chaves saem da maior
- * para a menor. */
+/* Percorre direita, raiz e esquerda para listar da maior chave para a menor. */
 void arvore_listar_decrescente(const NoArvore_t *raiz, int *contador)
 {
     if (raiz) {
         arvore_listar_decrescente(raiz->direita, contador);
-
-        if (contador) {
-            (*contador)++;
-        }
-        if (raiz->alimento) {
-            alimento_exibir(&(raiz->alimento->dado));
-        }
-
+        (*contador)++;
+        alimento_exibir(&(raiz->alimento->dado));
         arvore_listar_decrescente(raiz->esquerda, contador);
     }
 }
 
-/* Mesmo percurso da listagem decrescente, mas so desce para um lado
- * se ainda pode haver chaves da faixa nele. */
+/* Lista em ordem decrescente so as chaves da faixa, sem descer onde nao ha nenhuma. */
 void arvore_listar_faixa(const NoArvore_t *raiz, double min, double max,
                          int *contador)
 {
     if (raiz) {
-        /* A direita so tem chaves >= raiz; se a raiz ja passou de max,
-         * nada ali serve. */
         if (raiz->chave <= max) {
             arvore_listar_faixa(raiz->direita, min, max, contador);
         }
 
         if (raiz->chave >= min && raiz->chave <= max) {
-            if (contador) {
-                (*contador)++;
-            }
-            if (raiz->alimento) {
-                alimento_exibir(&(raiz->alimento->dado));
-            }
+            (*contador)++;
+            alimento_exibir(&(raiz->alimento->dado));
         }
 
-        /* A esquerda so tem chaves < raiz; se a raiz ja esta abaixo
-         * de min, nada ali serve. */
         if (raiz->chave >= min) {
             arvore_listar_faixa(raiz->esquerda, min, max, contador);
         }

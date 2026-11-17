@@ -8,8 +8,7 @@
 
 #define ARQUIVO_DADOS_BIN "dados.bin"
 
-/* Carrega os dados e repete o menu ate o usuario escolher sair.
- * Cada opcao chama a sua funcao em interface.c. */
+/* Carrega os dados e repete o menu ate o usuario escolher sair. */
 int main(void)
 {
     int codigo_retorno = EXIT_SUCCESS;
@@ -24,8 +23,6 @@ int main(void)
     lista_categorias = lista_carregar_de_binario(ARQUIVO_DADOS_BIN,
                                                  &total_carregados);
 
-    /* Arquivo com 0 bytes e valido: todas as categorias foram removidas.
-     * Arquivo ausente (-1) ou invalido continua sendo erro. */
     if (tamanho_bin != 0 && (!lista_categorias || total_carregados == 0)) {
         fprintf(stderr, "ERRO FATAL: Nao foi possivel carregar '%s'. "
                 "Execute o P1 primeiro!\n", ARQUIVO_DADOS_BIN);
@@ -33,6 +30,10 @@ int main(void)
     } else {
         printf("SUCESSO: %d registros carregados e organizados em listas "
                "e arvores!\n", total_carregados);
+        if (tamanho_bin % (long)sizeof(Alimento_t) != 0) {
+            printf("AVISO: '%s' tem um registro incompleto no fim, que foi "
+                   "ignorado.\n", ARQUIVO_DADOS_BIN);
+        }
     }
 
     while (codigo_retorno == EXIT_SUCCESS && opcao != OPCAO_ENCERRAR) {
@@ -43,16 +44,11 @@ int main(void)
             lista_exibir_categorias(lista_categorias);
         } else if (opcao == OPCAO_LISTAR_ALIMENTOS) {
             acao_listar_alimentos(lista_categorias);
-        } else if (opcao == OPCAO_LISTAR_POR_ENERGIA) {
-            acao_listar_por_energia(lista_categorias);
-        } else if (opcao == OPCAO_LISTAR_POR_PROTEINA) {
-            acao_listar_por_proteina(lista_categorias);
-        } else if (opcao == OPCAO_FAIXA_ENERGIA) {
-            acao_faixa_energia(lista_categorias);
-        } else if (opcao == OPCAO_FAIXA_PROTEINA) {
-            acao_faixa_proteina(lista_categorias);
+        } else if (opcao == OPCAO_LISTAR_POR_ENERGIA || opcao == OPCAO_LISTAR_POR_PROTEINA) {
+            listar_decrescente(lista_categorias, opcao == OPCAO_LISTAR_POR_ENERGIA);
+        } else if (opcao == OPCAO_FAIXA_ENERGIA || opcao == OPCAO_FAIXA_PROTEINA) {
+            listar_faixa(lista_categorias, opcao == OPCAO_FAIXA_ENERGIA);
         } else if (opcao == OPCAO_REMOVER_CATEGORIA) {
-            /* Basta uma remocao para o dados.bin ser regravado no fim. */
             if (acao_remover_categoria(&lista_categorias)) {
                 dados_modificados = 1;
             }
