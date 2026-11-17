@@ -62,10 +62,10 @@ int main(void)
         printf("\n[3/3] Conferindo integridade de '%s'...\n", ARQUIVO_BIN);
         tamanho_bytes = arquivo_obter_tamanho(ARQUIVO_BIN);
         tamanho_esperado = (long)((size_t)total_lidos * sizeof(Alimento_t));
-        printf("  - sizeof(Alimento): %zu bytes\n", sizeof(Alimento_t));
+        printf("  - sizeof(Alimento): %lu bytes\n", (unsigned long)sizeof(Alimento_t));
         printf("  - Tamanho do arquivo no disco: %ld bytes\n", tamanho_bytes);
-        printf("  - Calculo (%d x %zu):        %ld bytes\n",
-               total_lidos, sizeof(Alimento_t), tamanho_esperado);
+        printf("  - Calculo (%d x %lu):        %ld bytes\n",
+               total_lidos, (unsigned long)sizeof(Alimento_t), tamanho_esperado);
         if (tamanho_bytes != tamanho_esperado) {
             fprintf(stderr, "ERRO: Tamanho do arquivo binario diverge "
                     "do esperado!\n");
