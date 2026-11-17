@@ -221,7 +221,7 @@ static void exibir_rodape(const char *texto, int total)
     printf("------------------------------------------------------------\n");
 }
 
-/* Opcao 7: avisa e remove a categoria escolhida com todos os seus alimentos. */
+/* Opcao 7: remove a categoria escolhida com todos os seus alimentos e avisa. */
 int acao_remover_categoria(NoCategoria_t **cabeca)
 {
     int removeu = 0;
