@@ -17,7 +17,7 @@
 #define UTF8_DIF_MAIUSCULA 0x20
 
 /* Letra base das minusculas 0xC3 0xA0 a 0xC3 0xBF; ponto = nao tratada. */
-static const char BASE_ACENTOS[] = "aaaaa..ceeeeiiii..ooooo..uuuu...";
+static const char * const BASE_ACENTOS = "aaaaa..ceeeeiiii..ooooo..uuuu...";
 
 static void lista_inserir_alimento(NoCategoria_t **cabeca_categorias,
                                    const Alimento_t *alimento);

@@ -16,7 +16,7 @@
 #define UTF8_BYTE_CONTINUACAO 0x80
 
 /* Nome de cada categoria, na mesma ordem do enum Categoria_e. */
-static const char *NOMES[TOTAL_CATEGORIAS] = {
+static const char * const NOMES[TOTAL_CATEGORIAS] = {
     "Alimentos preparados",
     "Bebidas (alcoólicas e não alcoólicas)",
     "Carnes e derivados",
