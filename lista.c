@@ -78,7 +78,7 @@ static void lista_inserir_alimento(NoCategoria_t **cabeca_categorias,
                                            alimento->categoria, nome_cat);
 
         if (categoria) {
-            NoAlimento_t *novo = malloc(sizeof(NoAlimento_t));
+            NoAlimento_t *novo = calloc(1, sizeof(NoAlimento_t));
             NoAlimento_t *anterior = NULL;
             NoAlimento_t *atual = categoria->alimentos;
             int posicao_encontrada = 0;
@@ -134,7 +134,7 @@ static NoCategoria_t *lista_obter_ou_criar_categoria(NoCategoria_t **cabeca,
     }
 
     if (!encontrado) {
-        NoCategoria_t *novo = malloc(sizeof(NoCategoria_t));
+        NoCategoria_t *novo = calloc(1, sizeof(NoCategoria_t));
         NoCategoria_t *anterior_cat = NULL;
         NoCategoria_t *atual_cat = *cabeca;
         int posicao_encontrada = 0;
@@ -351,7 +351,7 @@ int lista_salvar_binario(const NoCategoria_t *cabeca, const char *caminho_bin)
     }
 
     if (quantidade > 0) {
-        vetor = malloc((size_t)quantidade * sizeof(Alimento_t));
+        vetor = calloc((size_t)quantidade, sizeof(Alimento_t));
         if (!vetor) {
             fprintf(stderr,
                     "ERRO FATAL: Memoria insuficiente para gravar '%s'.\n",
